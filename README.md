@@ -44,9 +44,9 @@ To run the project, follow these steps:
 
 3. Install the project dependencies by running:
 
-   ```bash
+```bash
    npm install
-   ```
+```
 
 Start the development server:
 
