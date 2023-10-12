@@ -14,7 +14,6 @@ import { RootStackParamList } from "./ActivitiesStack";
 
 import { Button, Paragraph, Portal, Dialog, FAB } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
-import { TextInputComponent } from "./TextInputComponent";
 import { CardComponent } from "./CardComponent";
 
 type ActivitiesRoute = RouteProp<RootStackParamList, "EditActivity">;
