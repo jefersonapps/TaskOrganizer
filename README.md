@@ -1,4 +1,4 @@
-# README for React Native Project
+# TaskOrganizer
 
 This README provides an overview of the React Native project, detailing its structure and functionality. The project consists of three main components: `App`, `ActivitiesScreen`, and `Files`. It uses several third-party libraries, including `@react-navigation`, `react-native-paper`, and `expo`, to create a mobile app for managing activities and files.
 
