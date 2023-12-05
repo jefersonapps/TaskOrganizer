@@ -55,11 +55,11 @@ const ConfigItemList = ({
 );
 
 export function ConfigScreen({ navigation }: NavigationProps) {
-  const { toggleTheme, image, setImage } = useContext(AppContext);
+  const { toggleTheme, image, setImage, userName, setUserName } =
+    useContext(AppContext);
   const theme = useAppTheme();
 
   const [isEditingName, setIsEditingName] = useState(false);
-  const [name, setName] = useState("");
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -127,8 +127,8 @@ export function ConfigScreen({ navigation }: NavigationProps) {
           <View style={{ flex: 1 }}>
             <TextInputComponent
               label="Digite seu nome..."
-              setText={setName}
-              text={name}
+              setText={setUserName}
+              text={userName}
               noMultiline
             />
           </View>
@@ -148,7 +148,7 @@ export function ConfigScreen({ navigation }: NavigationProps) {
               color: theme.colors.primary,
             }}
           >
-            {name ? name : "Digite seu nome..."}
+            {userName ? userName : "Digite seu nome..."}
           </Text>
         </TouchableOpacity>
       )}

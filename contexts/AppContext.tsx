@@ -68,4 +68,6 @@ export const AppContext = createContext({
   setImage: (
     value: ((prevState: string | null) => string | null) | string | null
   ) => {},
+  userName: "" as string,
+  setUserName: (value: string | ((prevState: string) => string)) => {},
 });

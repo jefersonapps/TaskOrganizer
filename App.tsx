@@ -27,6 +27,22 @@ import { SheduleStack } from "./screens/shedule-screen/SheduleStack";
 import { LatexStack } from "./screens/latex-screen/LatexStack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QRCodeScreen } from "./screens/qr-code-screen/QRCodeScreen";
+import { useEffect } from "react";
+import { MMKV } from "react-native-mmkv";
+
+// Cria uma nova instância de armazenamento
+export const storage = new MMKV();
+
+// Função para salvar o estado no armazenamento local
+export const saveState = (key, state) => {
+  storage.set(key, JSON.stringify(state));
+};
+
+// Função para recuperar o estado do armazenamento local
+export const loadState = (key) => {
+  const state = storage.getString(key);
+  return state ? JSON.parse(state) : undefined;
+};
 
 const Tab = createBottomTabNavigator();
 
@@ -76,11 +92,28 @@ function App() {
     }
   };
 
-  const [activities, dispatchActivities] = useReducer(activitiesReducer, []);
+  const [activities, dispatchActivities] = useReducer(
+    activitiesReducer,
+    loadState("activities") || []
+  );
 
-  const [files, setFiles] = useState<File[]>([]);
+  useEffect(() => {
+    saveState("activities", activities);
+  }, [activities]);
 
-  const [theme, setTheme] = useState<MyTheme>(MyDarkTheme);
+  const [files, setFiles] = useState<File[]>(loadState("files") || []);
+
+  useEffect(() => {
+    saveState("files", files);
+  }, [files]);
+
+  const [theme, setTheme] = useState<MyTheme>(
+    loadState("theme") || MyDarkTheme
+  );
+
+  useEffect(() => {
+    saveState("theme", theme);
+  }, [theme]);
 
   // Criando o reducer
   const scheduleReducer: Reducer<
@@ -119,7 +152,14 @@ function App() {
     }
   };
 
-  const [schedule, dispatchSchedule] = useReducer(scheduleReducer, {});
+  const [schedule, dispatchSchedule] = useReducer(
+    scheduleReducer,
+    loadState("schedule") || {}
+  );
+
+  useEffect(() => {
+    saveState("schedule", schedule);
+  }, [schedule]);
 
   const latexReducer: Reducer<LatexType[], LatexAction> = (state, action) => {
     switch (action.type) {
@@ -142,8 +182,27 @@ function App() {
     }
   };
 
-  const [equations, dispatchEquations] = useReducer(latexReducer, []);
-  const [image, setImage] = useState<string | null>(null);
+  const [equations, dispatchEquations] = useReducer(
+    latexReducer,
+    loadState("equations") || []
+  );
+  useEffect(() => {
+    saveState("equations", equations);
+  }, [equations]);
+
+  const [image, setImage] = useState<string | null>(loadState("image") || null);
+
+  useEffect(() => {
+    saveState("image", image);
+  }, [image]);
+
+  const [userName, setUserName] = useState<string>(
+    loadState("userName") || null
+  );
+
+  useEffect(() => {
+    saveState("userName", userName);
+  }, [userName]);
 
   const toggleTheme = () => {
     setTheme((theme) => (theme === MyLightTheme ? MyDarkTheme : MyLightTheme));
@@ -166,6 +225,8 @@ function App() {
               dispatchEquations,
               image,
               setImage,
+              userName,
+              setUserName,
             }}
           >
             <Tab.Navigator
