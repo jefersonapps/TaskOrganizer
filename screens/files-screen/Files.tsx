@@ -16,6 +16,7 @@ import * as Crypto from "expo-crypto";
 import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
 import { ListItem } from "./ListItem";
+import LottieView from "lottie-react-native";
 
 export default function Files() {
   const { files, setFiles } = useContext(AppContext);
@@ -114,22 +115,37 @@ export default function Files() {
         </Dialog>
       </Portal>
 
-      <FlatList
-        data={files}
-        keyExtractor={(file) => file.id}
-        contentContainerStyle={{ paddingBottom: 80 }}
-        renderItem={({ item: file }) => (
-          <View style={{ flex: 1, alignItems: "stretch" }}>
-            {ListItem({
-              file: file,
-              onDelete: handleDelete,
-              onOpenFile: handleOpenFile,
-            })}
-          </View>
-        )}
-        style={{ margin: 0, padding: 0, width: "100%" }}
-        ItemSeparatorComponent={Divider}
-      />
+      {files.length > 0 ? (
+        <FlatList
+          data={files}
+          keyExtractor={(file) => file.id}
+          contentContainerStyle={{ paddingBottom: 80 }}
+          renderItem={({ item: file }) => (
+            <View style={{ flex: 1, alignItems: "stretch" }}>
+              {ListItem({
+                file: file,
+                onDelete: handleDelete,
+                onOpenFile: handleOpenFile,
+              })}
+            </View>
+          )}
+          style={{ margin: 0, padding: 0, width: "100%" }}
+          ItemSeparatorComponent={Divider}
+        />
+      ) : (
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <LottieView
+            autoPlay
+            style={{
+              width: 160,
+              height: 160,
+            }}
+            source={require("../../lottie-files/files-animation.json")}
+          />
+        </View>
+      )}
     </View>
   );
 }

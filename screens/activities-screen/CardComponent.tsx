@@ -14,9 +14,14 @@ type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
 interface CardComponentProps {
   item: ActivityType;
   handleDelete: (id: string) => void;
+  checkActivity: (id: string) => void;
 }
 
-export const CardComponent = ({ item, handleDelete }: CardComponentProps) => {
+export const CardComponent = ({
+  item,
+  handleDelete,
+  checkActivity,
+}: CardComponentProps) => {
   const { activities } = useContext(AppContext);
   const navigation = useNavigation<ActivitiesNavigation>();
   const handleEdit = useCallback((id: string) => {
@@ -33,6 +38,7 @@ export const CardComponent = ({ item, handleDelete }: CardComponentProps) => {
   };
 
   const theme = useAppTheme();
+
   return (
     <View style={{ flex: 1, alignItems: "stretch" }}>
       <Card
@@ -57,7 +63,9 @@ export const CardComponent = ({ item, handleDelete }: CardComponentProps) => {
             {formatTimeStamp(item.timeStamp)}
           </Chip>
           <View style={{ paddingVertical: 10 }}>
-            {item.title && <Title>{item.title}</Title>}
+            {item.title && (
+              <Title style={{ fontWeight: "bold" }}>{item.title}</Title>
+            )}
             <Paragraph>{item.text}</Paragraph>
           </View>
 
@@ -71,6 +79,12 @@ export const CardComponent = ({ item, handleDelete }: CardComponentProps) => {
         <Card.Actions>
           <IconButton icon="pencil" onPress={() => handleEdit(item.id)} />
           <IconButton icon="delete" onPress={() => handleDelete(item.id)} />
+          <IconButton
+            icon="check"
+            onPress={() => checkActivity(item.id)}
+            iconColor={item.checked ? "green" : undefined}
+            containerColor={item.checked ? "#34d399" : undefined}
+          />
         </Card.Actions>
       </Card>
     </View>

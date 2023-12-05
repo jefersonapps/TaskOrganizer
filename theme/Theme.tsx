@@ -1,4 +1,4 @@
-import { DefaultTheme, MD3DarkTheme, useTheme } from "react-native-paper";
+import { MD3LightTheme, MD3DarkTheme, useTheme } from "react-native-paper";
 import { ThemeProp } from "react-native-paper/lib/typescript/types";
 
 export type MyTheme = ThemeProp & {
@@ -8,9 +8,9 @@ export type MyTheme = ThemeProp & {
 };
 
 export const MyLightTheme: MyTheme = {
-  ...DefaultTheme,
+  ...MD3LightTheme,
   colors: {
-    ...DefaultTheme.colors,
+    ...MD3LightTheme.colors,
     customBackground: "#e6e6e6",
   },
 };

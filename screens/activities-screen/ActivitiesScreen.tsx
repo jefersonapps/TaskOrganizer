@@ -5,16 +5,34 @@ import React, {
   useCallback,
   memo,
 } from "react";
-import { FlatList, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  ScrollView,
+  StatusBar,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { AppContext } from "../../contexts/AppContext";
 import { RootStackParamList } from "./ActivitiesStack";
+import LottieView from "lottie-react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
-import { Button, Paragraph, Portal, Dialog, FAB } from "react-native-paper";
+import {
+  Button,
+  Paragraph,
+  Portal,
+  Dialog,
+  FAB,
+  Title,
+} from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
 import { CardComponent } from "./CardComponent";
+import { ChipItemComponent } from "./ChipItemComponent";
+import { ProgressBar } from "../../components/ProgressBar";
 
 type ActivitiesRoute = RouteProp<RootStackParamList, "EditActivity">;
 type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
@@ -22,11 +40,13 @@ type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
 export const ActivitiesScreen = memo(() => {
   const route = useRoute<ActivitiesRoute>();
   const navigation = useNavigation<ActivitiesNavigation>();
-  const { activities, activitiesDispatch } = useContext(AppContext);
+  const { activities, activitiesDispatch, image } = useContext(AppContext);
 
   const [activitieToDelete, setActivitieToDelete] = useState<string | null>(
     null
   );
+  const [filter, setFilter] = useState("all");
+
   const theme = useAppTheme();
 
   useEffect(() => {
@@ -46,15 +66,50 @@ export const ActivitiesScreen = memo(() => {
     setActivitieToDelete(null);
   }, [activitieToDelete]);
 
+  const checkActivity = useCallback(
+    (id: string) => {
+      activitiesDispatch({ type: "check", id: id });
+    },
+    [activities]
+  );
+
   const goToAddActivity = () => {
     navigation.navigate("Add");
   };
+
+  const filteredActivities = activities.filter((activity) => {
+    if (filter === "all") return true;
+    if (filter === "completed") return activity.checked;
+    if (filter === "todo") return !activity.checked;
+  });
+
+  const currentHour = new Date().getHours();
+  let greeting;
+
+  if (currentHour >= 5 && currentHour < 12) {
+    greeting = "Bom dia";
+  } else if (currentHour >= 12 && currentHour < 18) {
+    greeting = "Boa tarde";
+  } else {
+    greeting = "Boa noite";
+  }
+
+  const checkedActivities = activities.filter((activity) => {
+    return activity.checked;
+  }).length;
+
+  const totalActivities = activities.length;
+
+  const percentageOfCheckedActivities =
+    totalActivities > 0 ? (checkedActivities / totalActivities) * 100 : 0;
+
   return (
     <View
       style={{
         flex: 1,
         backgroundColor: theme.colors.background,
         justifyContent: "flex-start",
+        paddingTop: StatusBar.currentHeight,
       }}
     >
       <Portal>
@@ -73,14 +128,129 @@ export const ActivitiesScreen = memo(() => {
         </Dialog>
       </Portal>
 
-      <FlatList
-        data={activities}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 80 }}
-        renderItem={({ item }) => (
-          <CardComponent item={item} handleDelete={handleDelete} />
-        )}
-      />
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          paddingHorizontal: 15,
+          paddingVertical: 15,
+          alignItems: "center",
+        }}
+      >
+        <Title
+          style={{
+            fontSize: 25,
+            fontWeight: "bold",
+            color: theme.colors.primary,
+          }}
+        >
+          {greeting}!
+        </Title>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("Ajustes")}
+        >
+          {image ? (
+            <Image
+              source={{ uri: image }}
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 25,
+                borderColor: "#34d399",
+                borderWidth: 4,
+              }}
+            />
+          ) : (
+            <View
+              style={{
+                width: 50,
+                height: 50,
+                borderRadius: 25,
+                borderColor: "#34d399",
+                borderWidth: 2,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <MaterialIcons
+                name="person"
+                size={30}
+                color={theme.colors.onPrimaryContainer}
+              />
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <View style={{ paddingHorizontal: 16 }}>
+        <ProgressBar progressPercentage={percentageOfCheckedActivities} />
+      </View>
+
+      <View style={{ alignItems: "center" }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            flexDirection: "row",
+            gap: 16,
+            paddingHorizontal: 16,
+            marginTop: 15,
+            marginBottom: 5,
+            height: 40,
+          }}
+        >
+          <ChipItemComponent
+            chipFilter="all"
+            filter={filter}
+            numberOfActivities={totalActivities}
+            setFilter={setFilter}
+            chipTitle="Todas"
+          />
+          <ChipItemComponent
+            chipFilter="completed"
+            filter={filter}
+            numberOfActivities={checkedActivities}
+            setFilter={setFilter}
+            chipTitle="Feitas"
+          />
+          <ChipItemComponent
+            chipFilter="todo"
+            filter={filter}
+            numberOfActivities={totalActivities - checkedActivities}
+            setFilter={setFilter}
+            chipTitle="A fazer"
+          />
+        </ScrollView>
+      </View>
+
+      {filteredActivities.length > 0 ? (
+        <FlatList
+          data={filteredActivities} // Use filteredActivities instead of activities
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: 80 }}
+          renderItem={({ item }) => (
+            <CardComponent
+              item={item}
+              handleDelete={handleDelete}
+              checkActivity={checkActivity}
+            />
+          )}
+        />
+      ) : (
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <LottieView
+            autoPlay
+            style={{
+              width: 160,
+              height: 160,
+            }}
+            source={require("../../lottie-files/beach-vacation.json")}
+          />
+        </View>
+      )}
 
       <FAB
         style={{

@@ -78,7 +78,12 @@ export const EditActivityScreen = () => {
       }}
     >
       <Text variant="titleMedium">Atividade:</Text>
-      <TextInputComponent text={title} setText={setTitle} label="Novo título" />
+      <TextInputComponent
+        noMultiline
+        text={title}
+        setText={setTitle}
+        label="Novo título"
+      />
       <TextInputComponent text={text} setText={setText} label="Novo conteúdo" />
 
       <Text variant="titleMedium">Prioridade:</Text>

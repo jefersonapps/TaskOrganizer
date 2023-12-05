@@ -3,9 +3,21 @@ import { useContext } from "react";
 import { View } from "react-native";
 import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
-import { Divider, List, Switch, TouchableRipple } from "react-native-paper";
+import {
+  Button,
+  Divider,
+  List,
+  Switch,
+  Text,
+  TouchableRipple,
+} from "react-native-paper";
 
 import { MaterialCommunityIcons, AntDesign } from "@expo/vector-icons";
+import React, { useState } from "react";
+import { Image, TouchableOpacity } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { MaterialIcons } from "@expo/vector-icons";
+import { TextInputComponent } from "../activities-screen/TextInputComponent";
 
 type RootStackParamList = {
   Config: undefined;
@@ -43,8 +55,24 @@ const ConfigItemList = ({
 );
 
 export function ConfigScreen({ navigation }: NavigationProps) {
-  const { toggleTheme } = useContext(AppContext);
+  const { toggleTheme, image, setImage } = useContext(AppContext);
   const theme = useAppTheme();
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [name, setName] = useState("");
+
+  const pickImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   return (
     <View
@@ -53,8 +81,77 @@ export function ConfigScreen({ navigation }: NavigationProps) {
         backgroundColor: theme.colors.background,
         alignItems: "center",
         justifyContent: "flex-start",
+        paddingHorizontal: 16,
+        paddingVertical: 14,
       }}
     >
+      <TouchableOpacity
+        onPress={pickImage}
+        style={{ borderColor: "#34d399", borderWidth: 4, borderRadius: 9999 }}
+      >
+        {image ? (
+          <Image
+            source={{ uri: image }}
+            style={{ width: 100, height: 100, borderRadius: 50 }}
+          />
+        ) : (
+          <View
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              borderColor: "#34d399",
+              borderWidth: 2,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <MaterialIcons
+              name="person"
+              size={60}
+              color={theme.colors.onPrimaryContainer}
+            />
+          </View>
+        )}
+      </TouchableOpacity>
+
+      {isEditingName ? (
+        <View
+          style={{
+            flexDirection: "row",
+            gap: 16,
+            width: "100%",
+            alignItems: "center",
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <TextInputComponent
+              label="Digite seu nome..."
+              setText={setName}
+              text={name}
+              noMultiline
+            />
+          </View>
+
+          {/* <TextInput value={name} onChangeText={setName} /> */}
+          <Button mode="contained" onPress={() => setIsEditingName(false)}>
+            Ok
+          </Button>
+        </View>
+      ) : (
+        <TouchableOpacity onPress={() => setIsEditingName(true)}>
+          <Text
+            style={{
+              fontSize: 20,
+              marginVertical: 14,
+              fontWeight: "bold",
+              color: theme.colors.primary,
+            }}
+          >
+            {name ? name : "Digite seu nome..."}
+          </Text>
+        </TouchableOpacity>
+      )}
       <TouchableRipple style={{ width: "100%" }} onPress={toggleTheme}>
         <ConfigItemList
           title={"Modo noturno"}

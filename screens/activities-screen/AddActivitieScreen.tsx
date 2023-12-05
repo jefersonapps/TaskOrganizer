@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./ActivitiesStack";
 import { RadioButtonComponent } from "./priority/RadioButtonComponent";
 import { DateTimePickerComponent } from "./date-time-picker/DateTimePickerComponent";
+import * as Notify from "expo-notifications";
 
 type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -21,6 +22,7 @@ export const AddActivitieScreen = memo(() => {
 
   const { activitiesDispatch } = useContext(AppContext);
   const navigation = useNavigation<ActivitiesNavigation>();
+
   const handleAdd = () => {
     if (!activityText) return;
     setActivityText("");
@@ -33,8 +35,39 @@ export const AddActivitieScreen = memo(() => {
       deliveryDay: deliveryDay,
       deliveryTime: deliveryTime,
       title: activityTitle || "",
+      checked: false,
     });
     navigation.goBack();
+
+    // Converte a data de entrega para o formato YYYY-MM-DD
+    const [day, month, year] = deliveryDay.split("/");
+    const formattedDeliveryDay = `${year}-${month}-${day}`;
+
+    // Calcula o número de segundos até a meia-noite do dia anterior à entrega
+    const deliveryDate = new Date(`${formattedDeliveryDay}T00:00`);
+    const now = new Date();
+    const secondsUntilDelivery =
+      (deliveryDate.getTime() - now.getTime()) / 1000;
+
+    if (secondsUntilDelivery > 0) {
+      sendNotification(
+        secondsUntilDelivery,
+        `Sua atividade se expira hoje: ${activityText}`
+      );
+    }
+  };
+
+  const sendNotification = async (sec: number, body: string) => {
+    await Notify.scheduleNotificationAsync({
+      content: {
+        title: "Atividade adicionada!",
+        body: body,
+        data: [],
+      },
+      trigger: {
+        seconds: sec,
+      },
+    });
   };
 
   const theme = useAppTheme();
@@ -71,6 +104,7 @@ export const AddActivitieScreen = memo(() => {
       <TextInputComponent
         text={activityTitle}
         setText={setActivityTitle}
+        noMultiline
         label="Digite o título"
       />
       <TextInputComponent

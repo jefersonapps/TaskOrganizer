@@ -15,6 +15,18 @@ export interface ActivityType {
   isEdited: boolean;
   deliveryDay: string;
   deliveryTime: string;
+  checked: boolean;
+}
+
+export interface LatexType {
+  id: string;
+  code: string;
+}
+
+export interface LatexAction {
+  id?: string;
+  code?: string;
+  type: string;
 }
 
 export interface Action {
@@ -27,14 +39,33 @@ export interface Action {
   isEdited?: boolean;
   deliveryDay?: string;
   deliveryTime?: string;
+  checked?: boolean;
   type: string;
 }
 
-// Crie um único contexto para toda a aplicação
+export type ActionShedule =
+  | { type: "add"; day: string; text: string; title: string }
+  | { type: "delete"; day: string; id: string }
+  | { type: "update"; day: string; activity?: SheduleActivityType };
+
+export type SheduleActivityType = {
+  id: string;
+  text: string;
+  title: string;
+};
+
 export const AppContext = createContext({
   activities: [] as ActivityType[],
   activitiesDispatch: (() => {}) as Dispatch<Action>,
+  schedule: {} as Record<string, SheduleActivityType[]>,
+  sheduleDispatch: (() => {}) as Dispatch<ActionShedule>,
+  equations: [] as LatexType[],
+  dispatchEquations: (() => {}) as Dispatch<LatexAction>,
   files: [] as File[],
   setFiles: (files: File[] | ((prevFiles: File[]) => File[])) => {},
   toggleTheme: () => {},
+  image: null as string | null,
+  setImage: (
+    value: ((prevState: string | null) => string | null) | string | null
+  ) => {},
 });

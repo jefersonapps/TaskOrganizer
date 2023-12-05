@@ -5,12 +5,14 @@ type TextInputComponentProps = {
   setText: (value: string) => void;
   text: string;
   label: string;
+  noMultiline?: boolean;
 };
 
 export const TextInputComponent = ({
   text,
   setText,
   label,
+  noMultiline,
 }: TextInputComponentProps) => {
   return (
     <View
@@ -19,6 +21,7 @@ export const TextInputComponent = ({
         marginVertical: 10,
         gap: 10,
         alignItems: "center",
+        width: "100%",
       }}
     >
       <TextInput
@@ -26,9 +29,9 @@ export const TextInputComponent = ({
         contentStyle={{
           marginHorizontal: 0,
         }}
-        multiline
+        multiline={noMultiline ? false : true}
         mode="outlined"
-        style={{ flex: 1 }}
+        style={{ flex: 1, maxHeight: 200 }}
         label={label}
         value={text}
         onChangeText={(text) => setText(text)}

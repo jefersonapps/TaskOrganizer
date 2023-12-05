@@ -10,6 +10,7 @@ export type RootStackParamList = {
   Activities: { activity: ActivityType };
   EditActivity: { activity: ActivityType };
   Add: any;
+  Ajustes: any;
 };
 
 const Stack = createNativeStackNavigator();
