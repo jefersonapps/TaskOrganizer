@@ -4,6 +4,7 @@ import React, {
   useContext,
   useCallback,
   memo,
+  useMemo,
 } from "react";
 import {
   FlatList,
@@ -73,35 +74,42 @@ export const ActivitiesScreen = memo(() => {
     [activities]
   );
 
-  const goToAddActivity = () => {
+  const goToAddActivity = useCallback(() => {
     navigation.navigate("Add");
-  };
+  }, []);
 
-  const filteredActivities = activities.filter((activity) => {
-    if (filter === "all") return true;
-    if (filter === "completed") return activity.checked;
-    if (filter === "todo") return !activity.checked;
-  });
+  const filteredActivities = useMemo(() => {
+    return activities.filter((activity) => {
+      if (filter === "all") return true;
+      if (filter === "completed") return activity.checked;
+      if (filter === "todo") return !activity.checked;
+    });
+  }, [activities, filter]);
 
-  const currentHour = new Date().getHours();
-  let greeting;
+  const greeting = useMemo(() => {
+    const currentHour = new Date().getHours();
+    if (currentHour >= 5 && currentHour < 12) {
+      return "Bom dia";
+    } else if (currentHour >= 12 && currentHour < 18) {
+      return "Boa tarde";
+    } else {
+      return "Boa noite";
+    }
+  }, []);
 
-  if (currentHour >= 5 && currentHour < 12) {
-    greeting = "Bom dia";
-  } else if (currentHour >= 12 && currentHour < 18) {
-    greeting = "Boa tarde";
-  } else {
-    greeting = "Boa noite";
-  }
+  const checkedActivities = useMemo(() => {
+    return activities.filter((activity) => activity.checked).length;
+  }, [activities]);
 
-  const checkedActivities = activities.filter((activity) => {
-    return activity.checked;
-  }).length;
+  const totalActivities = useMemo(() => {
+    return activities.length;
+  }, [activities]);
 
-  const totalActivities = activities.length;
-
-  const percentageOfCheckedActivities =
-    totalActivities > 0 ? (checkedActivities / totalActivities) * 100 : 0;
+  const percentageOfCheckedActivities = useMemo(() => {
+    return totalActivities > 0
+      ? (checkedActivities / totalActivities) * 100
+      : 0;
+  }, [activities]);
 
   return (
     <View
@@ -226,16 +234,27 @@ export const ActivitiesScreen = memo(() => {
 
       {filteredActivities.length > 0 ? (
         <FlatList
-          data={filteredActivities} // Use filteredActivities instead of activities
+          data={activities} // Use the original activities array
+          extraData={filter} // Add the filter variable as extraData
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingBottom: 80 }}
-          renderItem={({ item }) => (
-            <CardComponent
-              item={item}
-              handleDelete={handleDelete}
-              checkActivity={checkActivity}
-            />
-          )}
+          renderItem={({ item }) => {
+            if (
+              filter === "all" ||
+              (filter === "completed" && item.checked) ||
+              (filter === "todo" && !item.checked)
+            ) {
+              return (
+                <CardComponent
+                  item={item}
+                  handleDelete={handleDelete}
+                  checkActivity={checkActivity}
+                />
+              );
+            } else {
+              return null;
+            }
+          }}
         />
       ) : (
         <View

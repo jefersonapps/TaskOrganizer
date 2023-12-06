@@ -1,4 +1,4 @@
-import React, { SetStateAction } from "react";
+import React, { SetStateAction, useRef, useState } from "react";
 import { ScrollView, View } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import SvgQRCode from "react-native-qrcode-svg";
@@ -6,25 +6,77 @@ import { Button, Text } from "react-native-paper";
 import { TextInputComponent } from "../activities-screen/TextInputComponent";
 import { useAppTheme } from "../../theme/Theme";
 import LottieView from "lottie-react-native";
+import * as MediaLibrary from "expo-media-library";
+import { captureRef } from "react-native-view-shot";
+import { CustomAlert } from "../../components/CustomAlert";
+import * as Sharing from "expo-sharing";
 
-interface CreateQRComponentProps {
-  viewShotRef: React.MutableRefObject<null>;
-  inputText: string;
-  setInputText: React.Dispatch<SetStateAction<string>>;
-  handleDownloadQRCode: () => Promise<void>;
-  handleShareQRCode: () => Promise<void>;
-}
-
-export const CreateQRComponent = ({
-  viewShotRef,
-  inputText,
-  setInputText,
-  handleDownloadQRCode,
-  handleShareQRCode,
-}: CreateQRComponentProps) => {
+export const CreateQRComponent = () => {
   const theme = useAppTheme();
+
+  const [isImageSaved, setIsImageSaved] = useState(false);
+  const [inputText, setInputText] = useState("");
+  const viewShotRef = useRef(null);
+
+  const shareFile = (uri: string) => {
+    Sharing.shareAsync(uri);
+  };
+
+  const handleShareQRCode = async () => {
+    try {
+      const localUri = await captureRef(viewShotRef, {
+        height: 440,
+        quality: 1,
+      });
+      if (localUri) {
+        shareFile(localUri);
+      }
+    } catch (error) {
+      console.error(
+        "An error occurred while downloading and saving QR Code",
+        error
+      );
+    }
+  };
+
+  const saveImage = async (uri: string) => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === "granted") {
+        await MediaLibrary.saveToLibraryAsync(uri);
+        setIsImageSaved(true);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDownloadQRCode = async () => {
+    if (!viewShotRef.current) return;
+    try {
+      const localUri = await captureRef(viewShotRef, {
+        height: 440,
+        quality: 1,
+      });
+      if (localUri) {
+        saveImage(localUri);
+      }
+    } catch (error) {
+      console.error(
+        "An error occurred while downloading and saving QR Code",
+        error
+      );
+    }
+  };
+
   return (
     <ScrollView>
+      <CustomAlert
+        title="Sucesso!"
+        content="Imagem salva na galeria"
+        isVisible={isImageSaved}
+        setIsVisible={setIsImageSaved}
+      />
       <View style={{ flex: 1, alignItems: "center", paddingTop: 14 }}>
         <View
           style={{ padding: 10, backgroundColor: "white", borderRadius: 10 }}

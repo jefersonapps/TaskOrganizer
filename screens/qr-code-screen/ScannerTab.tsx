@@ -4,31 +4,53 @@ import { Button, Text } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
 import { CopyTextComponent } from "./CopyTextComponent";
 import LottieView from "lottie-react-native";
+import * as Haptics from "expo-haptics";
+import { useEffect, useState } from "react";
+import { handleVisitSite, isValidURL } from "../../helpers/helperFunctions";
+import * as ImagePicker from "expo-image-picker";
+import { GetPermission } from "../../components/GetPermission";
 
-interface ScannerTabComponentProps {
-  scanned: boolean;
-  handleBarCodeScanned: ({ data }: { data: string }) => void;
-  code: string;
-  link: string;
-  isValidURL: (link: string) => boolean;
-  setScanned: (value: boolean) => void;
-  setCode: (value: string) => void;
-  setLink: (value: string) => void;
-  handleVisitSite: () => void;
-}
-
-export const ScannerTab = ({
-  scanned,
-  handleBarCodeScanned,
-  code,
-  link,
-  isValidURL,
-  setScanned,
-  setCode,
-  setLink,
-  handleVisitSite,
-}: ScannerTabComponentProps) => {
+export const ScannerTab = () => {
   const theme = useAppTheme();
+
+  const [scanned, setScanned] = useState(false);
+  const [link, setLink] = useState("");
+  const [code, setCode] = useState("");
+
+  const [cameraPermission, setCameraPermission] =
+    useState<ImagePicker.PermissionStatus>();
+
+  useEffect(() => {
+    const requestCameraPermission = async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setCameraPermission(status);
+    };
+
+    requestCameraPermission();
+  }, []);
+
+  if (cameraPermission === "denied" || cameraPermission === undefined) {
+    const requestCameraPermission = async () => {
+      const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setCameraPermission(status);
+    };
+
+    return (
+      <GetPermission getPermissionAfterSetInConfigs={requestCameraPermission} />
+    );
+  }
+
+  const handleBarCodeScanned = ({ data }: { data: string }) => {
+    setScanned(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    if (isValidURL(data)) {
+      setLink(String(data));
+      setCode("");
+    } else {
+      setLink("");
+      setCode(String(data));
+    }
+  };
 
   const ScannerView = () => (
     <View style={{ flex: 1 }}>
@@ -153,7 +175,7 @@ export const ScannerTab = ({
               borderRadius: 10,
               marginLeft: scanned ? 10 : 0,
             }}
-            onPress={handleVisitSite}
+            onPress={() => handleVisitSite(link)}
           >
             <Text
               style={{

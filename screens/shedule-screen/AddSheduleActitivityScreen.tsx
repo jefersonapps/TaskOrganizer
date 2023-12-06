@@ -40,7 +40,7 @@ export const AddSheduleActivitieScreen = memo(() => {
   const navigation = useNavigation<ActivitiesNavigation>();
 
   const handleAdd = () => {
-    if (!activityText || !sheduleDay || !activityTitle) return;
+    if (!activityText || !sheduleDay) return;
     setActivityText("");
 
     sheduleDispatch({

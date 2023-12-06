@@ -29,19 +29,21 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QRCodeScreen } from "./screens/qr-code-screen/QRCodeScreen";
 import { useEffect } from "react";
 import { MMKV } from "react-native-mmkv";
+import { LitLensScreen } from "./screens/lit-lens/LitLensScreen";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 // Cria uma nova instância de armazenamento
 export const storage = new MMKV();
 
 // Função para salvar o estado no armazenamento local
-export const saveState = (key, state) => {
+export const saveState = <T extends unknown>(key: string, state: T) => {
   storage.set(key, JSON.stringify(state));
 };
 
 // Função para recuperar o estado do armazenamento local
-export const loadState = (key) => {
+export const loadState = <T extends unknown>(key: string): T | undefined => {
   const state = storage.getString(key);
-  return state ? JSON.parse(state) : undefined;
+  return state ? (JSON.parse(state) as T) : undefined;
 };
 
 const Tab = createBottomTabNavigator();
@@ -196,9 +198,7 @@ function App() {
     saveState("image", image);
   }, [image]);
 
-  const [userName, setUserName] = useState<string>(
-    loadState("userName") || null
-  );
+  const [userName, setUserName] = useState<string>(loadState("userName") || "");
 
   useEffect(() => {
     saveState("userName", userName);
@@ -285,6 +285,19 @@ function App() {
                 options={{
                   tabBarIcon: ({ color, size }) => (
                     <Ionicons name="qr-code" color={color} size={size} />
+                  ),
+                }}
+              />
+              <Tab.Screen
+                name="LitLens"
+                component={LitLensScreen}
+                options={{
+                  tabBarIcon: ({ color, size }) => (
+                    <MaterialCommunityIcons
+                      name="google-lens"
+                      size={size}
+                      color={color}
+                    />
                   ),
                 }}
               />

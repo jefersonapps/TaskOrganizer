@@ -1,4 +1,5 @@
 import { File } from "../contexts/AppContext";
+import * as Linking from "expo-linking";
 
 export function getIconForFile(file: File) {
   const extension = file.name.split(".").pop();
@@ -71,3 +72,26 @@ export function formatTimeStamp(dataISO: string) {
 
   return `${dia}/${mes}/${ano} às ${horas}:${minutos}:${segundos}`;
 }
+
+export const isValidURL = (str: string) => {
+  const pattern = new RegExp(
+    "^(https?:\\/\\/)?" +
+      "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" +
+      "((\\d{1,3}\\.){3}\\d{1,3}))" +
+      "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" +
+      "(\\?[;&a-z\\d%_.~+=-]*)?" +
+      "(\\#[-a-z\\d_]*)?$",
+    "i"
+  );
+  return !!pattern.test(str);
+};
+
+export const handleVisitSite = (link: string) => {
+  let fullURL = link;
+  if (!link.startsWith("http://") && !link.startsWith("https://")) {
+    fullURL = "https://" + link;
+  }
+  Linking.openURL(fullURL).catch((err: any) =>
+    console.error("An error occurred", err)
+  );
+};
