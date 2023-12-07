@@ -4,10 +4,14 @@ import { Button, Card, Paragraph, Title } from "react-native-paper";
 import * as Linking from "expo-linking";
 
 interface GetPermissionTypes {
+  title: string;
+  content: string;
   getPermissionAfterSetInConfigs: () => {};
 }
 
 export const GetPermission = ({
+  title,
+  content,
   getPermissionAfterSetInConfigs,
 }: GetPermissionTypes) => {
   const theme = useAppTheme();
@@ -28,12 +32,8 @@ export const GetPermission = ({
       <Card style={{ padding: 20, maxWidth: 300 }}>
         <Card.Title title="Aviso" />
         <Card.Content>
-          <Title>A câmera não está disponível</Title>
-          <Paragraph>
-            Desculpe, parece que não conseguimos acessar a câmera do seu
-            dispositivo. Por favor, verifique as configurações de permissão da
-            câmera e tente novamente.
-          </Paragraph>
+          <Title>{title}</Title>
+          <Paragraph>{content}</Paragraph>
         </Card.Content>
         <Card.Actions>
           <View

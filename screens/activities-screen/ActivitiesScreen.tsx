@@ -17,7 +17,7 @@ import {
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { AppContext } from "../../contexts/AppContext";
+import { ActivityType, AppContext } from "../../contexts/AppContext";
 import { RootStackParamList } from "./ActivitiesStack";
 import LottieView from "lottie-react-native";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -29,11 +29,14 @@ import {
   Dialog,
   FAB,
   Title,
+  ActivityIndicator,
+  Text,
 } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
 import { CardComponent } from "./CardComponent";
 import { ChipItemComponent } from "./ChipItemComponent";
 import { ProgressBar } from "../../components/ProgressBar";
+import { CircleBadgeComponent } from "./CircleBadgeComponent";
 
 type ActivitiesRoute = RouteProp<RootStackParamList, "EditActivity">;
 type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
@@ -46,7 +49,7 @@ export const ActivitiesScreen = memo(() => {
   const [activitieToDelete, setActivitieToDelete] = useState<string | null>(
     null
   );
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("todo");
 
   const theme = useAppTheme();
 
@@ -78,12 +81,18 @@ export const ActivitiesScreen = memo(() => {
     navigation.navigate("Add");
   }, []);
 
+  console.log("render activity");
+
   const filteredActivities = useMemo(() => {
-    return activities.filter((activity) => {
+    // Filtre todas as atividades de uma vez
+    const newFilteredActivities = activities.filter((activity) => {
       if (filter === "all") return true;
       if (filter === "completed") return activity.checked;
       if (filter === "todo") return !activity.checked;
     });
+
+    // Retorne as atividades filtradas
+    return newFilteredActivities;
   }, [activities, filter]);
 
   const greeting = useMemo(() => {
@@ -209,11 +218,11 @@ export const ActivitiesScreen = memo(() => {
           }}
         >
           <ChipItemComponent
-            chipFilter="all"
+            chipFilter="todo"
             filter={filter}
-            numberOfActivities={totalActivities}
+            numberOfActivities={totalActivities - checkedActivities}
             setFilter={setFilter}
-            chipTitle="Todas"
+            chipTitle="A fazer"
           />
           <ChipItemComponent
             chipFilter="completed"
@@ -222,17 +231,22 @@ export const ActivitiesScreen = memo(() => {
             setFilter={setFilter}
             chipTitle="Feitas"
           />
-          <ChipItemComponent
-            chipFilter="todo"
-            filter={filter}
-            numberOfActivities={totalActivities - checkedActivities}
-            setFilter={setFilter}
-            chipTitle="A fazer"
-          />
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text style={{ fontWeight: "bold" }}>Total: </Text>
+            <CircleBadgeComponent active={false}>
+              {String(totalActivities)}
+            </CircleBadgeComponent>
+          </View>
         </ScrollView>
       </View>
 
-      {filteredActivities.length > 0 ? (
+      {filteredActivities && filteredActivities.length > 0 ? (
         <FlatList
           data={activities} // Use the original activities array
           extraData={filter} // Add the filter variable as extraData

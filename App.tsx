@@ -31,6 +31,9 @@ import { useEffect } from "react";
 import { MMKV } from "react-native-mmkv";
 import { LitLensScreen } from "./screens/lit-lens/LitLensScreen";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import { GetPermission } from "./components/GetPermission";
+import { useNotificationPermission } from "./Hooks/usePermission";
 
 // Cria uma nova instância de armazenamento
 export const storage = new MMKV();
@@ -57,6 +60,9 @@ Notify.setNotificationHandler({
 });
 
 function App() {
+  const { notificationPermission, requestNotificationPermission } =
+    useNotificationPermission();
+
   const activitiesReducer: Reducer<ActivityType[], Action> = (
     state,
     action
@@ -204,9 +210,28 @@ function App() {
     saveState("userName", userName);
   }, [userName]);
 
+  const [galeryPermission, setGaleryPermission] =
+    useState<ImagePicker.PermissionStatus>();
+
+  const [cameraPermission, setCameraPermission] =
+    useState<ImagePicker.PermissionStatus>();
+
   const toggleTheme = () => {
     setTheme((theme) => (theme === MyLightTheme ? MyDarkTheme : MyLightTheme));
   };
+
+  if (notificationPermission === "denied") {
+    return (
+      <PaperProvider theme={theme}>
+        <GetPermission
+          getPermissionAfterSetInConfigs={requestNotificationPermission}
+          title="Notificações não estão disponíveis"
+          content="Desculpe, parece que não conseguimos enviar notificações para o seu dispositivo. Por favor, verifique as configurações de permissão de notificação e tente novamente."
+        />
+        <StatusBar style={theme.dark ? "light" : "dark"} />
+      </PaperProvider>
+    );
+  }
 
   return (
     <PaperProvider theme={theme}>
@@ -227,6 +252,10 @@ function App() {
               setImage,
               userName,
               setUserName,
+              galeryPermission,
+              setGaleryPermission,
+              cameraPermission,
+              setCameraPermission,
             }}
           >
             <Tab.Navigator

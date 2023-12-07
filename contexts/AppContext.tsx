@@ -1,4 +1,5 @@
 import { createContext, Dispatch } from "react";
+import * as ImagePicker from "expo-image-picker";
 
 export interface File {
   id: string;
@@ -70,4 +71,20 @@ export const AppContext = createContext({
   ) => {},
   userName: "" as string,
   setUserName: (value: string | ((prevState: string) => string)) => {},
+  cameraPermission: undefined as ImagePicker.PermissionStatus | undefined,
+  setGaleryPermission: (
+    value:
+      | ImagePicker.PermissionStatus
+      | ((
+          prevState: ImagePicker.PermissionStatus | undefined
+        ) => ImagePicker.PermissionStatus | undefined)
+  ) => {},
+  galeryPermission: undefined as ImagePicker.PermissionStatus | undefined,
+  setCameraPermission: (
+    value:
+      | ImagePicker.PermissionStatus
+      | ((
+          prevState: ImagePicker.PermissionStatus | undefined
+        ) => ImagePicker.PermissionStatus | undefined)
+  ) => {},
 });

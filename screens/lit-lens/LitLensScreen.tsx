@@ -1,30 +1,20 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import {
   Camera,
   useCameraDevices,
   useFrameProcessor,
-  CameraPermissionRequestResult,
 } from "react-native-vision-camera";
 import { runOnJS } from "react-native-reanimated";
 import { scanOCR } from "vision-camera-ocr";
-import {
-  Button,
-  IconButton,
-  TextInput,
-  Text,
-  Card,
-  Title,
-  Paragraph,
-} from "react-native-paper";
+import { Button, IconButton, TextInput, Text } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
 import { useNavigation } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
 
-import * as Linking from "expo-linking";
-import { useFocusEffect } from "@react-navigation/native";
 import { GetPermission } from "../../components/GetPermission";
+import { useCameraPermission } from "../../Hooks/usePermission";
 
 export const LitLensScreen = () => {
   const camera = useRef<Camera>(null);
@@ -35,38 +25,11 @@ export const LitLensScreen = () => {
   const [imageSource, setImageSource] = useState<string | null>("");
   const [ocrResult, setOcrResult] = useState("");
   const [isCopied, setIsCopied] = useState(false);
-  const [visible, setVisible] = useState(false);
-
-  const copyToClipboard = async (text: string) => {
-    setIsCopied(true);
-    await Clipboard.setStringAsync(text);
-    setTimeout(() => {
-      setIsCopied(false);
-    }, 2000);
-  };
 
   const devices = useCameraDevices();
   const device = devices.back;
 
-  const [permission, setPermission] = useState<CameraPermissionRequestResult>();
-
-  useFocusEffect(
-    useCallback(() => {
-      async function getPermission() {
-        const status = await Camera.requestCameraPermission();
-        setPermission(status);
-      }
-      getPermission();
-    }, [permission])
-  );
-
-  useEffect(() => {
-    async function getPermission() {
-      const status = await Camera.requestCameraPermission();
-      setPermission(status);
-    }
-    getPermission();
-  }, []);
+  const { cameraPermission, requestCameraPermission } = useCameraPermission();
 
   useEffect(() => {
     navigation.setOptions({
@@ -80,6 +43,21 @@ export const LitLensScreen = () => {
       ),
     });
   }, [navigation, ocrResult]);
+
+  const lottieRef = useRef<LottieView>(null);
+
+  useEffect(() => {
+    lottieRef.current?.reset();
+    lottieRef.current?.play();
+  }, [cameraPermission]);
+
+  const copyToClipboard = async (text: string) => {
+    setIsCopied(true);
+    await Clipboard.setStringAsync(text);
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2000);
+  };
 
   const frameProcessor = useFrameProcessor(
     (frame) => {
@@ -101,14 +79,14 @@ export const LitLensScreen = () => {
     }
   };
 
-  if (device == null || permission === "denied" || permission === undefined) {
-    async function getPermissionAfterSetInConfigs() {
-      const status = await Camera.requestCameraPermission();
-      setPermission(status);
-    }
+  if (cameraPermission === "denied" || !device) {
     return (
       <GetPermission
-        getPermissionAfterSetInConfigs={getPermissionAfterSetInConfigs}
+        getPermissionAfterSetInConfigs={requestCameraPermission}
+        title="A câmera não está disponível"
+        content="Desculpe, parece que não conseguimos acessar a câmera do seu
+      dispositivo. Por favor, verifique as configurações de permissão da
+      câmera e tente novamente."
       />
     );
   }
@@ -183,6 +161,7 @@ export const LitLensScreen = () => {
                 </Text>
 
                 <LottieView
+                  ref={lottieRef}
                   source={require("../../lottie-files/scan-doc.json")}
                   style={{ width: 300 }}
                   autoPlay

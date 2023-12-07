@@ -25,7 +25,7 @@ export const TopBarQRComponent = ({
   const ITEM_WIDTH = 120; // Ajuste este valor conforme necessário
 
   useEffect(() => {
-    Animated.spring(translateX, {
+    Animated.timing(translateX, {
       toValue: activeTab * ITEM_WIDTH,
       useNativeDriver: true,
     }).start();

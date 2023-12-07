@@ -9,6 +9,8 @@ interface ChipItemProps {
   setFilter: (filter: string) => void;
   chipFilter: string;
   chipTitle: string;
+  nobg?: boolean;
+  mode?: "flat" | "outlined";
 }
 
 export const ChipItemComponent = ({
@@ -17,6 +19,8 @@ export const ChipItemComponent = ({
   setFilter,
   chipFilter,
   chipTitle,
+  nobg,
+  mode,
 }: ChipItemProps) => {
   const theme = useAppTheme();
 
@@ -24,9 +28,12 @@ export const ChipItemComponent = ({
 
   return (
     <Chip
+      mode={mode ? mode : "flat"}
       style={{
         backgroundColor: active
           ? theme.colors.primaryContainer
+          : nobg
+          ? theme.colors.surface
           : theme.colors.inverseOnSurface,
       }}
       onPress={() => setFilter(chipFilter)}

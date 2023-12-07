@@ -18,6 +18,8 @@ import { Image, TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import { TextInputComponent } from "../activities-screen/TextInputComponent";
+import { useMediaLibraryPermission } from "../../Hooks/usePermission";
+import { GetPermission } from "../../components/GetPermission";
 
 type RootStackParamList = {
   Config: undefined;
@@ -60,6 +62,23 @@ export function ConfigScreen({ navigation }: NavigationProps) {
   const theme = useAppTheme();
 
   const [isEditingName, setIsEditingName] = useState(false);
+
+  const { mediaLibraryPermission, requestMediaLibraryPermission } =
+    useMediaLibraryPermission();
+
+  // ...
+
+  if (mediaLibraryPermission === "denied") {
+    return (
+      <GetPermission
+        getPermissionAfterSetInConfigs={requestMediaLibraryPermission}
+        title="A galeria não está disponível"
+        content="Desculpe, parece que não conseguimos acessar a galeria do seu dispositivo. 
+      Por favor, verifique as configurações de permissão de acesso a fotos e vídeos 
+      e tente novamente."
+      />
+    );
+  }
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({

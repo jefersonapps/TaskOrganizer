@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { View, Image, ScrollView } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { Button, Text } from "react-native-paper";
@@ -10,6 +10,8 @@ import LottieView from "lottie-react-native";
 import * as Haptics from "expo-haptics";
 import { handleVisitSite, isValidURL } from "../../helpers/helperFunctions";
 import { GetPermission } from "../../components/GetPermission";
+import { AppContext } from "../../contexts/AppContext";
+import { useMediaLibraryPermission } from "../../Hooks/usePermission";
 
 export const ReadQRTab = () => {
   const theme = useAppTheme();
@@ -17,32 +19,7 @@ export const ReadQRTab = () => {
   const [code, setCode] = useState("");
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-
-  const [galeryPermission, setGaleryPermission] =
-    useState<ImagePicker.PermissionStatus>();
-
-  useEffect(() => {
-    const requestMediaLibraryPermission = async () => {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      setGaleryPermission(status);
-    };
-
-    requestMediaLibraryPermission();
-  }, []);
-
-  if (galeryPermission === "denied" || galeryPermission === undefined) {
-    const requestMediaLibraryPermission = async () => {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      setGaleryPermission(status);
-    };
-    return (
-      <GetPermission
-        getPermissionAfterSetInConfigs={requestMediaLibraryPermission}
-      />
-    );
-  }
+  const { galeryPermission, setGaleryPermission } = useContext(AppContext);
 
   const handleReadImageScanned = ({ data }: { data: string }) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
@@ -86,6 +63,23 @@ export const ReadQRTab = () => {
       console.debug(error);
     }
   };
+
+  const { mediaLibraryPermission, requestMediaLibraryPermission } =
+    useMediaLibraryPermission();
+
+  // ...
+
+  if (mediaLibraryPermission === "denied") {
+    return (
+      <GetPermission
+        getPermissionAfterSetInConfigs={requestMediaLibraryPermission}
+        title="A galeria não está disponível"
+        content="Desculpe, parece que não conseguimos acessar a galeria do seu dispositivo. 
+        Por favor, verifique as configurações de permissão de acesso a fotos e vídeos 
+        e tente novamente."
+      />
+    );
+  }
 
   return (
     <ScrollView>

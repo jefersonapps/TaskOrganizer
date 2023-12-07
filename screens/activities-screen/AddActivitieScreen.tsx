@@ -49,6 +49,7 @@ export const AddActivitieScreen = memo(() => {
     const secondsUntilDelivery =
       (deliveryDate.getTime() - now.getTime()) / 1000;
 
+    console.log(secondsUntilDelivery);
     if (secondsUntilDelivery > 0) {
       sendNotification(
         secondsUntilDelivery,
@@ -58,6 +59,7 @@ export const AddActivitieScreen = memo(() => {
   };
 
   const sendNotification = async (sec: number, body: string) => {
+    console.log("vai mandar em", sec, "segundos.");
     await Notify.scheduleNotificationAsync({
       content: {
         title: "Atividade adicionada!",

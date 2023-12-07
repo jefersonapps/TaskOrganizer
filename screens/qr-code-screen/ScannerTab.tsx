@@ -5,10 +5,12 @@ import { useAppTheme } from "../../theme/Theme";
 import { CopyTextComponent } from "./CopyTextComponent";
 import LottieView from "lottie-react-native";
 import * as Haptics from "expo-haptics";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { handleVisitSite, isValidURL } from "../../helpers/helperFunctions";
-import * as ImagePicker from "expo-image-picker";
+
 import { GetPermission } from "../../components/GetPermission";
+
+import { useCameraPermission } from "../../Hooks/usePermission";
 
 export const ScannerTab = () => {
   const theme = useAppTheme();
@@ -17,28 +19,7 @@ export const ScannerTab = () => {
   const [link, setLink] = useState("");
   const [code, setCode] = useState("");
 
-  const [cameraPermission, setCameraPermission] =
-    useState<ImagePicker.PermissionStatus>();
-
-  useEffect(() => {
-    const requestCameraPermission = async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setCameraPermission(status);
-    };
-
-    requestCameraPermission();
-  }, []);
-
-  if (cameraPermission === "denied" || cameraPermission === undefined) {
-    const requestCameraPermission = async () => {
-      const { status } = await BarCodeScanner.requestPermissionsAsync();
-      setCameraPermission(status);
-    };
-
-    return (
-      <GetPermission getPermissionAfterSetInConfigs={requestCameraPermission} />
-    );
-  }
+  const { cameraPermission, requestCameraPermission } = useCameraPermission();
 
   const handleBarCodeScanned = ({ data }: { data: string }) => {
     setScanned(true);
@@ -61,41 +42,50 @@ export const ScannerTab = () => {
     </View>
   );
 
-  const ScannerOverlay = () => (
-    <View
-      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-      pointerEvents="none"
-    >
-      <View style={{ flex: 1, backgroundColor: "gray", opacity: 0.75 }} />
-      <View style={{ flexDirection: "row" }}>
-        <View style={{ flex: 1, backgroundColor: "gray", opacity: 0.75 }} />
-        <View style={{ position: "relative" }}>
-          <View
-            style={{
-              width: 250,
-              height: 250,
-              borderRadius: 4,
-              borderWidth: 4,
-              borderColor: "white",
+  const ScannerOverlay = () => {
+    const lottieRef = useRef<LottieView>(null);
 
-              zIndex: 10,
-            }}
-          />
-          <LottieView
-            autoPlay
-            style={{
-              position: "absolute",
-              width: 250,
-              height: 250,
-            }}
-            source={require("../../lottie-files/scanner-bar-animation.json")}
-          />
+    useEffect(() => {
+      lottieRef.current?.reset();
+      lottieRef.current?.play();
+    }, [cameraPermission]);
+    return (
+      <View
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+        pointerEvents="none"
+      >
+        <View style={{ flex: 1, backgroundColor: "gray", opacity: 0.75 }} />
+        <View style={{ flexDirection: "row" }}>
+          <View style={{ flex: 1, backgroundColor: "gray", opacity: 0.75 }} />
+          <View style={{ position: "relative" }}>
+            <View
+              style={{
+                width: 250,
+                height: 250,
+                borderRadius: 4,
+                borderWidth: 4,
+                borderColor: "white",
+
+                zIndex: 10,
+              }}
+            />
+            <LottieView
+              ref={lottieRef}
+              autoPlay
+              style={{
+                position: "absolute",
+                width: 250,
+                height: 250,
+              }}
+              source={require("../../lottie-files/scanner-bar-animation.json")}
+            />
+          </View>
+          <View style={{ flex: 1, backgroundColor: "gray", opacity: 0.75 }} />
         </View>
         <View style={{ flex: 1, backgroundColor: "gray", opacity: 0.75 }} />
       </View>
-      <View style={{ flex: 1, backgroundColor: "gray", opacity: 0.75 }} />
-    </View>
-  );
+    );
+  };
 
   const ScannerInstructions = () => (
     <View
@@ -191,6 +181,18 @@ export const ScannerTab = () => {
       </View>
     </View>
   );
+
+  if (cameraPermission === "denied") {
+    return (
+      <GetPermission
+        getPermissionAfterSetInConfigs={requestCameraPermission}
+        title="A câmera não está disponível"
+        content="Desculpe, parece que não conseguimos acessar a câmera do seu
+      dispositivo. Por favor, verifique as configurações de permissão da
+      câmera e tente novamente."
+      />
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
