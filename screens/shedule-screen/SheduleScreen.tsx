@@ -20,11 +20,13 @@ import { useNavigation } from "@react-navigation/native";
 
 import { useAppTheme } from "../../theme/Theme";
 import { SheduleCard } from "./SheduleCard";
-import { AppContext } from "../../contexts/AppContext";
+import { AppContext, SheduleActivityType } from "../../contexts/AppContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackSheduleParamList } from "./SheduleStack";
 import { daysOfWeek } from "../../constants/constants";
 import { TopBarComponent } from "./TopBarComponent";
+import * as Haptics from "expo-haptics";
+import DraggableFlatList from "react-native-draggable-flatlist";
 
 // Definindo o tipo de atividade
 
@@ -95,6 +97,40 @@ export const ScheduleScreen = () => {
       }
     },
   });
+
+  interface RenderItemProps {
+    item: SheduleActivityType;
+    drag: () => void;
+    isActive: boolean;
+  }
+
+  const renderItem = ({ item, drag, isActive }: RenderItemProps) => {
+    return (
+      <SheduleCard
+        swipeDirection={swipeDirection}
+        handleDelete={handleDelete}
+        handleEdit={handleUpdate}
+        item={item}
+        isActive={isActive}
+        onLongPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          drag();
+        }}
+      />
+    );
+  };
+
+  const onDragEnd = useCallback(
+    (data: SheduleActivityType[]) => {
+      sheduleDispatch({
+        type: "reorder",
+        day: daysOfWeek[activeTab],
+        activities: data,
+      });
+    },
+    [activeTab]
+  );
+
   return (
     <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
       <Portal>
@@ -116,19 +152,30 @@ export const ScheduleScreen = () => {
       <TopBarComponent setActiveTab={setActiveTab} activeTab={activeTab} />
 
       {schedule[daysOfWeek[activeTab]]?.length > 0 ? (
-        <FlatList
-          data={schedule[daysOfWeek[activeTab]] || []}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <SheduleCard
-              swipeDirection={swipeDirection}
-              handleDelete={handleDelete}
-              handleEdit={handleUpdate}
-              item={item}
-            />
-          )}
-          contentContainerStyle={{ flexGrow: 1 }}
-        />
+        // <FlatList
+        //   data={schedule[daysOfWeek[activeTab]] || []}
+        //   keyExtractor={(item) => item.id}
+        //   renderItem={({ item }) => (
+
+        //     <SheduleCard
+        //       swipeDirection={swipeDirection}
+        //       handleDelete={handleDelete}
+        //       handleEdit={handleUpdate}
+        //       item={item}
+        //     />
+        //   )}
+        //   contentContainerStyle={{ flexGrow: 1 }}
+        // />
+
+        <View style={{ flex: 1 }}>
+          <DraggableFlatList
+            contentContainerStyle={{ paddingBottom: 80 }}
+            data={schedule[daysOfWeek[activeTab]] || []}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            onDragEnd={({ data }) => onDragEnd(data)}
+          />
+        </View>
       ) : (
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}

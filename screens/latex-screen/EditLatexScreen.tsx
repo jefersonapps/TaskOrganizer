@@ -10,6 +10,7 @@ import { RootStackLatexParamList } from "./LatexStack";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { IconButton } from "react-native-paper";
 import { mmlOptions } from "../../constants/constants";
+import { MathJaxComponent } from "./MathJaxComponent";
 
 type SheduleNavigation = NativeStackNavigationProp<
   RootStackLatexParamList,
@@ -71,10 +72,7 @@ export const EditLatexScreen = () => {
         }}
       >
         <View>
-          <MathJax
-            html={`<div><br> ${latex} <br> <br> <br> <div>`}
-            mathJaxOptions={mmlOptions}
-          />
+          <MathJaxComponent latex={latex} />
         </View>
       </ScrollView>
 

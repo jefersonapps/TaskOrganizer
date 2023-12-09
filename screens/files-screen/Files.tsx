@@ -13,6 +13,7 @@ import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import * as IntentLauncher from "expo-intent-launcher";
 import * as Crypto from "expo-crypto";
+import * as Sharing from "expo-sharing";
 import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
 import { ListItem } from "./ListItem";
@@ -49,6 +50,15 @@ export default function Files() {
     } catch (error) {
       setVisible(true);
     }
+  };
+
+  const handleShareFile = async (fileUri: string) => {
+    if (!(await Sharing.isAvailableAsync())) {
+      alert(`Uh oh, sharing isn't available on your platform`);
+      return;
+    }
+
+    await Sharing.shareAsync(fileUri);
   };
 
   const handleDelete = useCallback((id: string) => {
@@ -120,15 +130,18 @@ export default function Files() {
           data={files}
           keyExtractor={(file) => file.id}
           contentContainerStyle={{ paddingBottom: 80 }}
-          renderItem={({ item: file }) => (
-            <View style={{ flex: 1, alignItems: "stretch" }}>
-              {ListItem({
-                file: file,
-                onDelete: handleDelete,
-                onOpenFile: handleOpenFile,
-              })}
-            </View>
-          )}
+          renderItem={({ item: file }) => {
+            return (
+              <View style={{ flex: 1, alignItems: "stretch" }}>
+                <ListItem
+                  file={file}
+                  handleShareFile={handleShareFile}
+                  onDelete={handleDelete}
+                  onOpenFile={handleOpenFile}
+                />
+              </View>
+            );
+          }}
           style={{ margin: 0, padding: 0, width: "100%" }}
           ItemSeparatorComponent={Divider}
         />

@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Animated, Dimensions, View } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useAppTheme } from "../theme/Theme";
+import { Text } from "react-native-paper";
 
 interface ProgressBarProps {
   progressPercentage: number;
@@ -33,20 +34,21 @@ export const ProgressBar = ({ progressPercentage }: ProgressBarProps) => {
     <View
       style={{
         flexDirection: "row",
-        paddingHorizontal: 15,
+        width: "100%",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      <View style={{ marginRight: 10 }}>
+      <View style={{ marginRight: 8 }}>
         <FontAwesome5 name="check-circle" size={23} color="#22c55e" />
       </View>
 
       <View
         style={{
           flexDirection: "row",
+          flex: 1,
           height: 15,
-          width: "100%",
+
           backgroundColor: theme.colors.secondary,
           borderRadius: 99,
         }}
@@ -59,6 +61,9 @@ export const ProgressBar = ({ progressPercentage }: ProgressBarProps) => {
           }}
         />
       </View>
+      <Text style={{ fontWeight: "bold", paddingLeft: 8 }}>
+        {progressPercentage.toFixed(0)}%
+      </Text>
     </View>
   );
 };

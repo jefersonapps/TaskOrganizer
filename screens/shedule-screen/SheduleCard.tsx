@@ -8,19 +8,23 @@ interface SheduleCardProps {
   item: SheduleActivityType;
   handleDelete: (id: string) => void;
   handleEdit: (id: string) => void;
-  swipeDirection: string; // Adicione esta propriedade
+  swipeDirection: string;
+  onLongPress: () => void;
+  isActive?: boolean;
 }
 
 export const SheduleCard = ({
   item,
   handleDelete,
   handleEdit,
-  swipeDirection, // Adicione esta propriedade
+  swipeDirection,
+  onLongPress,
+  isActive,
 }: SheduleCardProps) => {
   const theme = useAppTheme();
   const positionAnim = useRef(
     new Animated.Value(swipeDirection === "right" ? -1000 : 1000)
-  ).current; // Inicializa a animação
+  ).current;
 
   useEffect(() => {
     Animated.timing(positionAnim, {
@@ -34,7 +38,13 @@ export const SheduleCard = ({
     <Animated.View
       style={{ ...styles.container, transform: [{ translateX: positionAnim }] }}
     >
-      <PaperCard>
+      <PaperCard
+        onLongPress={onLongPress}
+        style={{
+          borderColor: isActive ? theme.colors.inversePrimary : undefined,
+          borderWidth: isActive ? 1 : 0,
+        }}
+      >
         <PaperCard.Content>
           {item.title && <Title style={styles.bold}>{item.title}</Title>}
           <Text style={styles.cardText}>{item.text}</Text>

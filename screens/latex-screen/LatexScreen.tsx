@@ -74,6 +74,7 @@ export const LatexScreen = () => {
             />
           )}
           keyExtractor={(item, index) => item.id}
+          contentContainerStyle={{ paddingBottom: 80 }}
           removeClippedSubviews={true}
           initialNumToRender={10}
           maxToRenderPerBatch={10}

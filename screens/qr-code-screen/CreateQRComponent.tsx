@@ -70,14 +70,14 @@ export const CreateQRComponent = () => {
   };
 
   return (
-    <ScrollView>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <CustomAlert
         title="Sucesso!"
         content="Imagem salva na galeria"
         isVisible={isImageSaved}
         setIsVisible={setIsImageSaved}
       />
-      <View style={{ flex: 1, alignItems: "center", paddingTop: 14 }}>
+      <View style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
         <View
           style={{ padding: 10, backgroundColor: "white", borderRadius: 10 }}
           ref={viewShotRef}

@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { LatexType } from "../../contexts/AppContext";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
+import { MathJaxComponent } from "./MathJaxComponent";
 
 interface LatexItemProps {
   item: LatexType;
@@ -57,10 +58,7 @@ export const LatexItem = ({
             }}
           >
             <View>
-              <MathJax
-                html={`<div><br> ${item.code} <br> <br> <br> <div>`}
-                mathJaxOptions={newMmlOptions}
-              />
+              <MathJaxComponent latex={item.code} />
             </View>
           </ScrollView>
         </View>
@@ -96,10 +94,7 @@ export const LatexItem = ({
                 }}
               >
                 <View style={{ padding: 2 }} ref={codeRef} collapsable={false}>
-                  <MathJax
-                    html={`<div><br> ${item.code} <br> <br> <br> <div>`}
-                    mathJaxOptions={mmlOptions}
-                  />
+                  <MathJaxComponent latex={item.code} />
                 </View>
               </ScrollView>
             </View>

@@ -2,12 +2,13 @@ import { Chip, Text } from "react-native-paper";
 import { View } from "react-native";
 import { CircleBadgeComponent } from "./CircleBadgeComponent";
 import { useAppTheme } from "../../theme/Theme";
+import { FilterType } from "./ActivitiesScreen";
 
 interface ChipItemProps {
   filter: string;
   numberOfActivities: number;
-  setFilter: (filter: string) => void;
-  chipFilter: string;
+  setFilter: React.Dispatch<React.SetStateAction<FilterType>>;
+  chipFilter: FilterType;
   chipTitle: string;
   nobg?: boolean;
   mode?: "flat" | "outlined";

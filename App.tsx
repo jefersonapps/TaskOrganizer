@@ -29,11 +29,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QRCodeScreen } from "./screens/qr-code-screen/QRCodeScreen";
 import { useEffect } from "react";
 import { MMKV } from "react-native-mmkv";
-import { LitLensScreen } from "./screens/lit-lens/LitLensScreen";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { GetPermission } from "./components/GetPermission";
 import { useNotificationPermission } from "./Hooks/usePermission";
+import { LitLensStack } from "./screens/lit-lens/LitLensStack";
 
 // Cria uma nova instância de armazenamento
 export const storage = new MMKV();
@@ -81,6 +81,7 @@ function App() {
             deliveryTime: action.deliveryTime || "",
             title: action.title || "",
             checked: action.checked || false,
+            notificationId: action.notificationId || null,
           },
         ];
       case "delete":
@@ -135,7 +136,7 @@ function App() {
           [action.day]: [
             ...(state[action.day] || []),
             {
-              id: Math.random().toString(),
+              id: Crypto.randomUUID(),
               text: action.text || "",
               title: action.title || "",
             },
@@ -154,6 +155,11 @@ function App() {
           [action.day]: (state[action.day] || []).map((activity) =>
             activity.id === action.activity?.id ? action.activity : activity
           ),
+        };
+      case "reorder":
+        return {
+          ...state,
+          [action.day]: action.activities,
         };
       default:
         throw new Error();
@@ -233,6 +239,9 @@ function App() {
     );
   }
 
+  const [imageSource, setImageSource] = useState<string | null>("");
+  const [ocrResult, setOcrResult] = useState("");
+
   return (
     <PaperProvider theme={theme}>
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -256,6 +265,10 @@ function App() {
               setGaleryPermission,
               cameraPermission,
               setCameraPermission,
+              imageSource,
+              setImageSource,
+              ocrResult,
+              setOcrResult,
             }}
           >
             <Tab.Navigator
@@ -319,7 +332,7 @@ function App() {
               />
               <Tab.Screen
                 name="LitLens"
-                component={LitLensScreen}
+                component={LitLensStack}
                 options={{
                   tabBarIcon: ({ color, size }) => (
                     <MaterialCommunityIcons
@@ -328,6 +341,7 @@ function App() {
                       color={color}
                     />
                   ),
+                  headerShown: false,
                 }}
               />
               <Tab.Screen

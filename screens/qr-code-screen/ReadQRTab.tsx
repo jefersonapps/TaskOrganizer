@@ -82,12 +82,12 @@ export const ReadQRTab = () => {
   }
 
   return (
-    <ScrollView>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View
         style={{
           flex: 1,
           alignItems: "center",
-          paddingTop: 14,
+          paddingVertical: 14,
         }}
       >
         <Button

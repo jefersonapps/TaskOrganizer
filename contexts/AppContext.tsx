@@ -7,6 +7,11 @@ export interface File {
   uri: string;
 }
 
+export type NotificationIdType = {
+  notificationIdBeginOfDay: string | null;
+  notificationIdExactTime: string;
+} | null;
+
 export interface ActivityType {
   id: string;
   priority: string;
@@ -17,6 +22,7 @@ export interface ActivityType {
   deliveryDay: string;
   deliveryTime: string;
   checked: boolean;
+  notificationId?: NotificationIdType;
 }
 
 export interface LatexType {
@@ -42,12 +48,14 @@ export interface Action {
   deliveryTime?: string;
   checked?: boolean;
   type: string;
+  notificationId?: NotificationIdType;
 }
 
 export type ActionShedule =
   | { type: "add"; day: string; text: string; title: string }
   | { type: "delete"; day: string; id: string }
-  | { type: "update"; day: string; activity?: SheduleActivityType };
+  | { type: "update"; day: string; activity?: SheduleActivityType }
+  | { type: "reorder"; day: string; activities: SheduleActivityType[] };
 
 export type SheduleActivityType = {
   id: string;
@@ -87,4 +95,10 @@ export const AppContext = createContext({
           prevState: ImagePicker.PermissionStatus | undefined
         ) => ImagePicker.PermissionStatus | undefined)
   ) => {},
+  imageSource: null as string | null,
+  setImageSource: (
+    value: ((prevState: string | null) => string | null) | string | null
+  ) => {},
+  ocrResult: "" as string,
+  setOcrResult: (value: string | ((prevState: string) => string)) => {},
 });

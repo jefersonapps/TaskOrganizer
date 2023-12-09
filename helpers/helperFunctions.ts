@@ -1,5 +1,6 @@
 import { File } from "../contexts/AppContext";
 import * as Linking from "expo-linking";
+import * as Notify from "expo-notifications";
 
 export function getIconForFile(file: File) {
   const extension = file.name.split(".").pop();
@@ -94,4 +95,30 @@ export const handleVisitSite = (link: string) => {
   Linking.openURL(fullURL).catch((err: any) =>
     console.error("An error occurred", err)
   );
+};
+
+export const cancelNotification = async (identifier: string | null) => {
+  if (identifier) {
+    console.log("cancelou aqui");
+    await Notify.cancelScheduledNotificationAsync(identifier);
+  }
+};
+
+export const sendNotification = async (
+  sec: number,
+  title: string,
+  body: string
+) => {
+  console.log("vai mandar em", sec, "segundos.");
+  const identifier = await Notify.scheduleNotificationAsync({
+    content: {
+      title: title,
+      body: body,
+      data: [],
+    },
+    trigger: {
+      seconds: sec,
+    },
+  });
+  return identifier;
 };

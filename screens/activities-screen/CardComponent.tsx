@@ -1,7 +1,11 @@
 import { useCallback, useContext } from "react";
 import { View } from "react-native";
 import { Card, Chip, IconButton, Paragraph, Title } from "react-native-paper";
-import { ActivityType, AppContext } from "../../contexts/AppContext";
+import {
+  ActivityType,
+  AppContext,
+  NotificationIdType,
+} from "../../contexts/AppContext";
 import { useNavigation } from "@react-navigation/native";
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -13,14 +17,18 @@ type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
 
 interface CardComponentProps {
   item: ActivityType;
-  handleDelete: (id: string) => void;
-  checkActivity: (id: string) => void;
+  handleDelete: (id: string, identifier: NotificationIdType) => void;
+  checkActivity: (id: string, identifier: NotificationIdType) => void;
+  onLongPress: () => void;
+  isActive?: boolean;
 }
 
 export const CardComponent = ({
   item,
   handleDelete,
   checkActivity,
+  onLongPress,
+  isActive,
 }: CardComponentProps) => {
   const { activities } = useContext(AppContext);
   const navigation = useNavigation<ActivitiesNavigation>();
@@ -39,9 +47,12 @@ export const CardComponent = ({
 
   const theme = useAppTheme();
 
+  // console.log(item);
+
   return (
     <View style={{ flex: 1, alignItems: "stretch" }}>
       <Card
+        onLongPress={onLongPress}
         style={{
           margin: 10,
           borderLeftWidth: 10,
@@ -54,6 +65,8 @@ export const CardComponent = ({
           borderBottomColor: theme.dark ? "#4d4b4b" : undefined,
           borderRightWidth: theme.dark ? 1 : 0,
           borderRightColor: theme.dark ? "#4d4b4b" : undefined,
+          borderWidth: isActive ? 1 : 0,
+          borderColor: isActive ? theme.colors.inversePrimary : undefined,
         }}
       >
         <Card.Content>
@@ -78,10 +91,28 @@ export const CardComponent = ({
         </Card.Content>
         <Card.Actions>
           <IconButton icon="pencil" onPress={() => handleEdit(item.id)} />
-          <IconButton icon="delete" onPress={() => handleDelete(item.id)} />
+          <IconButton
+            icon="delete"
+            onPress={() =>
+              handleDelete(
+                item.id,
+
+                item.notificationId?.notificationIdBeginOfDay ||
+                  item.notificationId?.notificationIdExactTime
+                  ? item.notificationId
+                  : null
+              )
+            }
+          />
+
           <IconButton
             icon="check"
-            onPress={() => checkActivity(item.id)}
+            onPress={() =>
+              checkActivity(
+                item.id,
+                item.notificationId ? item.notificationId : null
+              )
+            }
             iconColor={item.checked ? "green" : undefined}
             containerColor={item.checked ? "#34d399" : undefined}
           />
