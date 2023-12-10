@@ -33,7 +33,7 @@ export const GetPermission = ({
         <Card.Title title="Aviso" />
         <Card.Content>
           <Title>{title}</Title>
-          <Paragraph>{content}</Paragraph>
+          <Paragraph style={{ textAlign: "justify" }}>{content}</Paragraph>
         </Card.Content>
         <Card.Actions>
           <View

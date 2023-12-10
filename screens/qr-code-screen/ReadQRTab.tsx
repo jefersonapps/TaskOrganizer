@@ -19,7 +19,6 @@ export const ReadQRTab = () => {
   const [code, setCode] = useState("");
 
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const { galeryPermission, setGaleryPermission } = useContext(AppContext);
 
   const handleReadImageScanned = ({ data }: { data: string }) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);

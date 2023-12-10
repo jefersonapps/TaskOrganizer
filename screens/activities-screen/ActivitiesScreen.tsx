@@ -34,7 +34,6 @@ import {
   Dialog,
   FAB,
   Title,
-  ActivityIndicator,
   Text,
 } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
@@ -70,7 +69,8 @@ type PriorityLevels = {
 export const ActivitiesScreen = memo(() => {
   const route = useRoute<ActivitiesRoute>();
   const navigation = useNavigation<ActivitiesNavigation>();
-  const { activities, activitiesDispatch, image } = useContext(AppContext);
+  const { activities, activitiesDispatch, image, isDarkTheme } =
+    useContext(AppContext);
 
   const [activitieToDelete, setActivitieToDelete] = useState<{
     id: string;
@@ -368,8 +368,7 @@ export const ActivitiesScreen = memo(() => {
           }}
         >
           <LinearGradient
-            // Background Linear Gradient
-            colors={["transparent", theme.colors.surface || "gray"]}
+            colors={["transparent", theme.colors.surface]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={{
@@ -379,6 +378,7 @@ export const ActivitiesScreen = memo(() => {
               left: -40,
             }}
           />
+
           <Text style={{ fontWeight: "bold" }}>Total: </Text>
           <CircleBadgeComponent active={false}>
             {String(totalActivities)}

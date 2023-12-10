@@ -9,9 +9,8 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./ActivitiesStack";
 import { RadioButtonComponent } from "./priority/RadioButtonComponent";
 import { DateTimePickerComponent } from "./date-time-picker/DateTimePickerComponent";
-import * as Notify from "expo-notifications";
-import dayjs from "dayjs";
-import { sendNotification } from "../../helpers/helperFunctions";
+
+import { getNotificationIds } from "../../helpers/helperFunctions";
 
 type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -22,48 +21,19 @@ export const AddActivitieScreen = memo(() => {
   const [deliveryTime, setDeliveryTime] = useState("");
   const [activityTitle, setActivityTitle] = useState("");
 
-  const { activitiesDispatch } = useContext(AppContext);
+  const { activitiesDispatch, userName } = useContext(AppContext);
   const navigation = useNavigation<ActivitiesNavigation>();
 
   const handleAdd = async () => {
     if (!activityText) return;
 
-    const now = new Date();
-    // // Converte a data de entrega para o formato YYYY-MM-DD
-    const [day, month, year] = deliveryDay.split("/");
-
-    const formattedDeliveryDay = `${year}-${month}-${day}`;
-
-    // // Adiciona a hora de entrega ao dia de entrega
-    const deliveryDateTime = `${formattedDeliveryDay}T${deliveryTime}`;
-
-    // // Cria objetos Day.js para agora e a data/hora de entrega
-    const nowDayJs = dayjs();
-    const delivery = dayjs(deliveryDateTime);
-
-    // // Calcula a diferença em segundos
-    const secondsExact = delivery.diff(nowDayJs, "second");
-
-    const notificationIdExactTime = await sendNotification(
-      secondsExact,
-      "O prazo acabou... 😥️",
-      "Atividade: " + activityText
-    );
-
-    // // Calcula o número de segundos até a meia-noite do dia anterior à entrega
-    const deliveryDate = new Date(`${formattedDeliveryDay}T00:00`);
-
-    const secondsUntilDelivery =
-      (deliveryDate.getTime() - now.getTime()) / 1000;
-
-    let notificationIdBeginOfDay = null;
-    if (secondsUntilDelivery > 0) {
-      notificationIdBeginOfDay = await sendNotification(
-        secondsUntilDelivery,
-        "O prazo está acabando! ⏳️🔥️",
-        `Sua atividade se expira hoje: ${activityText}`
+    const { notificationIdBeginOfDay, notificationIdExactTime } =
+      await getNotificationIds(
+        deliveryDay,
+        deliveryTime,
+        userName,
+        activityText
       );
-    }
 
     activitiesDispatch({
       type: "add",

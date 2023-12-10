@@ -8,8 +8,8 @@ export interface File {
 }
 
 export type NotificationIdType = {
-  notificationIdBeginOfDay: string | null;
-  notificationIdExactTime: string;
+  notificationIdBeginOfDay: string | null | undefined;
+  notificationIdExactTime: string | null | undefined;
 } | null;
 
 export interface ActivityType {
@@ -101,4 +101,5 @@ export const AppContext = createContext({
   ) => {},
   ocrResult: "" as string,
   setOcrResult: (value: string | ((prevState: string) => string)) => {},
+  isDarkTheme: true as boolean,
 });

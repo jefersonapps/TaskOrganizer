@@ -222,8 +222,10 @@ function App() {
   const [cameraPermission, setCameraPermission] =
     useState<ImagePicker.PermissionStatus>();
 
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
   const toggleTheme = () => {
     setTheme((theme) => (theme === MyLightTheme ? MyDarkTheme : MyLightTheme));
+    setIsDarkTheme((prev) => !prev);
   };
 
   if (notificationPermission === "denied") {
@@ -269,6 +271,7 @@ function App() {
               setImageSource,
               ocrResult,
               setOcrResult,
+              isDarkTheme,
             }}
           >
             <Tab.Navigator

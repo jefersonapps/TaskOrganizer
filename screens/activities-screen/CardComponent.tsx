@@ -12,6 +12,13 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./ActivitiesStack";
 import { formatTimeStamp } from "../../helpers/helperFunctions";
 import { useAppTheme } from "../../theme/Theme";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);
+import utc from "dayjs/plugin/utc"; // Importando o plugin utc
+dayjs.extend(utc);
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(timezone);
 
 type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -47,7 +54,36 @@ export const CardComponent = ({
 
   const theme = useAppTheme();
 
-  // console.log(item);
+  const deliveryDateTime = dayjs.utc(
+    `${item.deliveryDay} ${item.deliveryTime ? item.deliveryTime : "00:00:00"}`,
+    "DD/MM/YYYY HH:mm:ss"
+  );
+  const now = dayjs().utc(true);
+
+  let status;
+  let color;
+
+  if (now.isBefore(deliveryDateTime, "day")) {
+    status = "Prazo: ";
+    color = theme.colors.surfaceVariant;
+  } else if (now.isSame(deliveryDateTime, "day")) {
+    if (now.isBefore(deliveryDateTime, "minute")) {
+      status = "Expira hoje: ";
+      color = theme.dark
+        ? theme.colors.tertiaryContainer
+        : theme.colors.errorContainer;
+    } else {
+      status = "Expirada: ";
+      color = theme.dark
+        ? theme.colors.errorContainer
+        : theme.colors.tertiaryContainer;
+    }
+  } else {
+    status = "Expirada: ";
+    color = theme.dark
+      ? theme.colors.errorContainer
+      : theme.colors.tertiaryContainer;
+  }
 
   return (
     <View style={{ flex: 1, alignItems: "stretch" }}>
@@ -83,8 +119,9 @@ export const CardComponent = ({
           </View>
 
           {item.deliveryDay && (
-            <Chip icon="calendar-clock">
-              Prazo: {item.deliveryDay} {item.deliveryTime && "às"}{" "}
+            <Chip icon="calendar-clock" style={{ backgroundColor: color }}>
+              {status}
+              {item.deliveryDay} {item.deliveryTime && "às"}{" "}
               {item.deliveryTime.slice(0, -3)}
             </Chip>
           )}

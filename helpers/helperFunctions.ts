@@ -1,6 +1,7 @@
 import { File } from "../contexts/AppContext";
 import * as Linking from "expo-linking";
 import * as Notify from "expo-notifications";
+import dayjs from "dayjs";
 
 export function getIconForFile(file: File) {
   const extension = file.name.split(".").pop();
@@ -97,7 +98,9 @@ export const handleVisitSite = (link: string) => {
   );
 };
 
-export const cancelNotification = async (identifier: string | null) => {
+export const cancelNotification = async (
+  identifier: string | null | undefined
+) => {
   if (identifier) {
     console.log("cancelou aqui");
     await Notify.cancelScheduledNotificationAsync(identifier);
@@ -109,6 +112,7 @@ export const sendNotification = async (
   title: string,
   body: string
 ) => {
+  if (sec < 0 || !sec) return null;
   console.log("vai mandar em", sec, "segundos.");
   const identifier = await Notify.scheduleNotificationAsync({
     content: {
@@ -121,4 +125,57 @@ export const sendNotification = async (
     },
   });
   return identifier;
+};
+
+export const formatName = (userName: string) => {
+  const nameParts = userName.toLowerCase().split(" ");
+  const firstName = nameParts[0];
+  const secondName = nameParts.length > 1 ? nameParts[1] : "";
+
+  const capitalizedFirstName =
+    firstName.charAt(0).toUpperCase() + firstName.slice(1);
+  const capitalizedSecondName =
+    secondName.charAt(0).toUpperCase() + secondName.slice(1);
+
+  const addSpace = capitalizedSecondName ? " " : "";
+
+  return capitalizedFirstName + addSpace + capitalizedSecondName;
+};
+
+interface NotificationIds {
+  notificationIdExactTime: string | null;
+  notificationIdBeginOfDay: string | null;
+}
+
+export const getNotificationIds = async (
+  deliveryDay: string,
+  deliveryTime: string,
+  userName: string,
+  activityText: string
+): Promise<NotificationIds> => {
+  const now = new Date();
+  const [day, month, year] = deliveryDay.split("/");
+  const formattedDeliveryDay = `${year}-${month}-${day}`;
+  const deliveryDateTime = `${formattedDeliveryDay}T${deliveryTime}`;
+  const nowDayJs = dayjs();
+  const delivery = dayjs(deliveryDateTime);
+  const secondsExact = delivery.diff(nowDayJs, "second");
+  const oUpperOrLowe = userName ? ", o" : "O";
+  const userNameCapitalized = userName ? formatName(userName) : "";
+  const notificationIdExactTime = await sendNotification(
+    secondsExact,
+    userNameCapitalized + oUpperOrLowe + " prazo acabou... 😥️",
+    "Atividade: " + activityText
+  );
+  const deliveryDate = new Date(`${formattedDeliveryDay}T00:00`);
+  const secondsUntilDelivery = (deliveryDate.getTime() - now.getTime()) / 1000;
+  let notificationIdBeginOfDay = null;
+  if (secondsUntilDelivery > 0) {
+    notificationIdBeginOfDay = await sendNotification(
+      secondsUntilDelivery,
+      userNameCapitalized + oUpperOrLowe + " prazo está acabando! ⏳️🔥️",
+      `Sua atividade se expira hoje: ${activityText}`
+    );
+  }
+  return { notificationIdExactTime, notificationIdBeginOfDay };
 };

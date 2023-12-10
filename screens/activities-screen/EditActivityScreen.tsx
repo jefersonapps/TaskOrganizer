@@ -10,6 +10,10 @@ import { useAppTheme } from "../../theme/Theme";
 import { RadioButtonComponent } from "./priority/RadioButtonComponent";
 import { DateTimePickerComponent } from "./date-time-picker/DateTimePickerComponent";
 import { TextInputComponent } from "./TextInputComponent";
+import {
+  cancelNotification,
+  getNotificationIds,
+} from "../../helpers/helperFunctions";
 
 type EditRoute = RouteProp<RootStackParamList, "EditActivity">;
 type EditNavigation = NativeStackNavigationProp<RootStackParamList>;
@@ -20,9 +24,8 @@ export const EditActivityScreen = () => {
 
   const theme = useAppTheme();
 
-  const { activities, activitiesDispatch } = useContext(AppContext);
+  const { activities, activitiesDispatch, userName } = useContext(AppContext);
 
-  // Encontrar a atividade a ser editada no contexto global
   const activity = activities.find((a) => a.id === route.params?.activity.id);
 
   const [text, setText] = useState(activity?.text || "");
@@ -34,30 +37,39 @@ export const EditActivityScreen = () => {
     activity?.deliveryTime || ""
   );
 
+  const handleEdit = async () => {
+    if (activity) {
+      cancelNotification(activity.notificationId?.notificationIdBeginOfDay);
+      cancelNotification(activity.notificationId?.notificationIdExactTime);
+
+      const { notificationIdBeginOfDay, notificationIdExactTime } =
+        await getNotificationIds(deliveryDay, deliveryTime, userName, text);
+
+      activitiesDispatch({
+        type: "update",
+        activity: {
+          ...activity,
+          text,
+          priority,
+          timeStamp: new Date().toISOString(),
+          isEdited: true,
+          deliveryDay: deliveryDay,
+          deliveryTime: deliveryTime,
+          title: title,
+          notificationId: {
+            notificationIdBeginOfDay: notificationIdBeginOfDay,
+            notificationIdExactTime: notificationIdExactTime,
+          },
+        },
+      });
+    }
+    navigation.goBack();
+  };
+
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Button
-          mode="contained"
-          onPress={() => {
-            if (activity) {
-              activitiesDispatch({
-                type: "update",
-                activity: {
-                  ...activity,
-                  text,
-                  priority,
-                  timeStamp: new Date().toISOString(),
-                  isEdited: true,
-                  deliveryDay: deliveryDay,
-                  deliveryTime: deliveryTime,
-                  title: title,
-                },
-              });
-            }
-            navigation.goBack();
-          }}
-        >
+        <Button mode="contained" onPress={handleEdit}>
           Salvar
         </Button>
       ),

@@ -101,8 +101,7 @@ export function ConfigScreen({ navigation }: NavigationProps) {
           backgroundColor: theme.colors.background,
           alignItems: "center",
           justifyContent: "flex-start",
-          paddingHorizontal: 16,
-          paddingVertical: 14,
+          padding: 14,
         }}
       >
         <TouchableOpacity

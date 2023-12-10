@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { Camera } from "react-native-vision-camera";
 import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
+import * as MediaLibrary from "expo-media-library";
 
 export const useCameraPermission = () => {
   const [cameraPermission, setCameraPermission] = useState("granted");
@@ -49,4 +50,19 @@ export const useNotificationPermission = () => {
   }, [requestNotificationPermission]);
 
   return { notificationPermission, requestNotificationPermission };
+};
+
+export const useSaveImagePermission = () => {
+  const [saveImagePermission, setSaveImagePermission] = useState("granted");
+
+  const requestSaveImagePermission = useCallback(async () => {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    setSaveImagePermission(status === "granted" ? "granted" : "denied");
+  }, []);
+
+  useEffect(() => {
+    requestSaveImagePermission();
+  }, [requestSaveImagePermission]);
+
+  return { saveImagePermission, requestSaveImagePermission };
 };
