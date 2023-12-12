@@ -15,7 +15,12 @@ import {
   LatexType,
   SheduleActivityType,
 } from "./contexts/AppContext";
-import { Provider as PaperProvider } from "react-native-paper";
+import {
+  Button,
+  Card,
+  Provider as PaperProvider,
+  Text,
+} from "react-native-paper";
 import { MyDarkTheme, MyLightTheme, MyTheme } from "./theme/Theme";
 import { StatusBar } from "expo-status-bar";
 import * as Notify from "expo-notifications";
@@ -34,6 +39,9 @@ import * as ImagePicker from "expo-image-picker";
 import { GetPermission } from "./components/GetPermission";
 import { useNotificationPermission } from "./Hooks/usePermission";
 import { LitLensStack } from "./screens/lit-lens/LitLensStack";
+import * as LocalAuthentication from "expo-local-authentication";
+import { View } from "react-native";
+import LottieView from "lottie-react-native";
 
 // Cria uma nova instância de armazenamento
 export const storage = new MMKV();
@@ -72,7 +80,7 @@ function App() {
         return [
           ...state,
           {
-            id: Crypto.randomUUID(),
+            id: action.id || Crypto.randomUUID(),
             text: action.text || "",
             priority: action.priority || "",
             timeStamp: action.timeStamp || "",
@@ -124,7 +132,14 @@ function App() {
     saveState("theme", theme);
   }, [theme]);
 
-  // Criando o reducer
+  const daysOfWeek = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+
+  const initialSchedule: Record<string, SheduleActivityType[]> =
+    daysOfWeek.reduce((acc, day) => {
+      acc[day] = [];
+      return acc;
+    }, {} as Record<string, SheduleActivityType[]>);
+
   const scheduleReducer: Reducer<
     Record<string, SheduleActivityType[]>,
     ActionShedule
@@ -168,7 +183,7 @@ function App() {
 
   const [schedule, dispatchSchedule] = useReducer(
     scheduleReducer,
-    loadState("schedule") || {}
+    loadState("schedule") || initialSchedule
   );
 
   useEffect(() => {
@@ -222,11 +237,91 @@ function App() {
   const [cameraPermission, setCameraPermission] =
     useState<ImagePicker.PermissionStatus>();
 
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
   const toggleTheme = () => {
     setTheme((theme) => (theme === MyLightTheme ? MyDarkTheme : MyLightTheme));
-    setIsDarkTheme((prev) => !prev);
   };
+
+  const [imageSource, setImageSource] = useState<string | null>("");
+  const [ocrResult, setOcrResult] = useState("");
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isBiometricEnabled, setIsBiometricEnabled] = useState(
+    loadState("isBiometricEnabled") || false
+  );
+
+  useEffect(() => {
+    saveState("isBiometricEnabled", isBiometricEnabled);
+  }, [isBiometricEnabled]);
+
+  async function handleAuthentication() {
+    const auth = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Login no TaskOrganizer",
+      fallbackLabel: "Não foi possível desbloquear",
+    });
+
+    setIsAuthenticated(auth.success);
+  }
+
+  useEffect(() => {
+    console.log(isAuthenticated);
+    if (isBiometricEnabled && !isAuthenticated) {
+      handleAuthentication();
+    }
+  }, [isBiometricEnabled, isAuthenticated]);
+
+  if (!isAuthenticated && isBiometricEnabled) {
+    return (
+      <PaperProvider theme={theme}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: theme.colors.surface,
+            padding: 14,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Card style={{ padding: 14 }}>
+            <Card.Content>
+              <Text
+                style={{ fontSize: 20, fontWeight: "bold", marginBottom: 14 }}
+              >
+                Login
+              </Text>
+              <Text style={{ textAlign: "justify" }}>
+                <Text style={{ fontWeight: "bold" }}>
+                  Aplicativo bloqueado!
+                </Text>{" "}
+                O TaskOrganizer está protegendo seus dados, por falor
+                desbloqueie o aplicativo.
+              </Text>
+              <View
+                style={{
+                  width: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <LottieView
+                  autoPlay
+                  style={{
+                    width: 200,
+                    height: 200,
+                  }}
+                  source={require("./lottie-files/locked-animation.json")}
+                />
+              </View>
+            </Card.Content>
+            <Card.Actions>
+              <Button onPress={handleAuthentication} mode="contained">
+                Desbloquear
+              </Button>
+            </Card.Actions>
+          </Card>
+        </View>
+      </PaperProvider>
+    );
+  }
 
   if (notificationPermission === "denied") {
     return (
@@ -240,9 +335,6 @@ function App() {
       </PaperProvider>
     );
   }
-
-  const [imageSource, setImageSource] = useState<string | null>("");
-  const [ocrResult, setOcrResult] = useState("");
 
   return (
     <PaperProvider theme={theme}>
@@ -271,7 +363,8 @@ function App() {
               setImageSource,
               ocrResult,
               setOcrResult,
-              isDarkTheme,
+              isBiometricEnabled,
+              setIsBiometricEnabled,
             }}
           >
             <Tab.Navigator

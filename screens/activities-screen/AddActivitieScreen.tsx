@@ -9,6 +9,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./ActivitiesStack";
 import { RadioButtonComponent } from "./priority/RadioButtonComponent";
 import { DateTimePickerComponent } from "./date-time-picker/DateTimePickerComponent";
+import * as Crypto from "expo-crypto";
 
 import { getNotificationIds } from "../../helpers/helperFunctions";
 
@@ -27,15 +28,19 @@ export const AddActivitieScreen = memo(() => {
   const handleAdd = async () => {
     if (!activityText) return;
 
+    const id = Crypto.randomUUID();
+
     const { notificationIdBeginOfDay, notificationIdExactTime } =
       await getNotificationIds(
         deliveryDay,
         deliveryTime,
         userName,
-        activityText
+        activityText,
+        id
       );
 
     activitiesDispatch({
+      id: id,
       type: "add",
       text: activityText,
       priority: priority,

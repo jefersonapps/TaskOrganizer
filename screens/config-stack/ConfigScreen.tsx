@@ -1,12 +1,15 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useContext } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { ScrollView, View } from "react-native";
 import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
 import {
   Button,
+  Card,
+  Dialog,
   Divider,
   List,
+  Portal,
   Switch,
   Text,
   TouchableRipple,
@@ -20,6 +23,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { TextInputComponent } from "../activities-screen/TextInputComponent";
 import { useMediaLibraryPermission } from "../../Hooks/usePermission";
 import { GetPermission } from "../../components/GetPermission";
+import { ScheduleChart } from "../../components/ScheduleChart";
+import * as LocalAuthentication from "expo-local-authentication";
 
 type RootStackParamList = {
   Config: undefined;
@@ -56,17 +61,63 @@ const ConfigItemList = ({
   />
 );
 
+const CardWithNumber = ({
+  title,
+  number,
+}: {
+  title: string;
+  number: number;
+}) => {
+  const theme = useAppTheme();
+  return (
+    <Card
+      style={{
+        backgroundColor: theme.colors.secondaryContainer,
+        marginTop: 14,
+      }}
+    >
+      <Card.Content>
+        <Text
+          style={{
+            fontWeight: "bold",
+            fontSize: 20,
+          }}
+        >
+          {title}
+        </Text>
+        <Text
+          style={{
+            fontWeight: "bold",
+            fontSize: 40,
+            textAlign: "center",
+            color: theme.colors.primary,
+          }}
+        >
+          {number}
+        </Text>
+      </Card.Content>
+    </Card>
+  );
+};
+
 export function ConfigScreen({ navigation }: NavigationProps) {
-  const { toggleTheme, image, setImage, userName, setUserName } =
-    useContext(AppContext);
+  const {
+    toggleTheme,
+    image,
+    setImage,
+    userName,
+    setUserName,
+    activities,
+    schedule,
+    isBiometricEnabled,
+    setIsBiometricEnabled,
+  } = useContext(AppContext);
   const theme = useAppTheme();
 
   const [isEditingName, setIsEditingName] = useState(false);
 
   const { mediaLibraryPermission, requestMediaLibraryPermission } =
     useMediaLibraryPermission();
-
-  // ...
 
   if (mediaLibraryPermission === "denied") {
     return (
@@ -93,17 +144,138 @@ export function ConfigScreen({ navigation }: NavigationProps) {
     }
   };
 
+  const totalActivities = useMemo(() => {
+    return activities.length;
+  }, [activities]);
+
+  const checkedActivitiesSize = useMemo(() => {
+    return activities.filter((activity) => activity.checked).length;
+  }, [activities]);
+
+  const withDeadlineActivitiesSize = useMemo(() => {
+    return activities.filter((activity) => activity.deliveryDay).length;
+  }, [activities]);
+
+  const [isCompatibleAlertVisible, setIsCompatibleAlertVisible] =
+    useState(false);
+
+  const [isNoBiometryAlertVisible, setIsNoBiometryAlertVisible] =
+    useState(false);
+
+  const enableBiometrics = async () => {
+    const auth = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Confirme sua identidade para ativar",
+      fallbackLabel: "Não foi possível desbloquear, tente novamente",
+    });
+    if (auth.success) {
+      setIsBiometricEnabled(true);
+    }
+  };
+
+  const toggleBiometricSecurity = async () => {
+    const compatible = await LocalAuthentication.hasHardwareAsync();
+    if (!compatible) {
+      setIsCompatibleAlertVisible(true);
+    }
+
+    const isBiometricEnrolled = await LocalAuthentication.isEnrolledAsync();
+    if (!isBiometricEnrolled && compatible && !isBiometricEnabled) {
+      console.log("Nenhuma biometria cadastrada");
+      setIsNoBiometryAlertVisible(true);
+      return;
+    }
+
+    if (!isBiometricEnabled) {
+      enableBiometrics();
+    }
+
+    if (isBiometricEnabled) {
+      const auth = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Confirme sua identidade para desativar",
+        fallbackLabel: "Não foi possível desbloquear, tente novamente",
+      });
+
+      if (auth.success) {
+        setIsBiometricEnabled(false);
+      }
+    }
+  };
+
   return (
-    <ScrollView contentContainerStyle={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View
         style={{
           flex: 1,
           backgroundColor: theme.colors.background,
           alignItems: "center",
           justifyContent: "flex-start",
-          padding: 14,
+          paddingVertical: 14,
         }}
       >
+        <Portal>
+          <Dialog
+            visible={isCompatibleAlertVisible}
+            onDismiss={() => setIsCompatibleAlertVisible(false)}
+          >
+            <Dialog.Title>Biometria não suportada</Dialog.Title>
+            <Dialog.Content>
+              <Text style={{ textAlign: "justify" }}>
+                Biometria não é suportada no seu dispositivo. Você usará sua
+                senha padrão.
+              </Text>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button
+                onPress={() => {
+                  setIsCompatibleAlertVisible(false);
+                  setIsBiometricEnabled(true);
+                }}
+              >
+                Ok
+              </Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+
+        <Portal>
+          <Dialog
+            visible={isNoBiometryAlertVisible}
+            onDismiss={() => setIsNoBiometryAlertVisible(false)}
+          >
+            <Dialog.Title>Nenhuma biometria encontrada</Dialog.Title>
+            <Dialog.Content>
+              <Text style={{ textAlign: "justify" }}>
+                Parace que você não tem nenhuma biometria cadastrada no seu
+                dispositivo, por favor cadastre e tente novamente, ou clique em{" "}
+                <Text
+                  style={{ color: theme.colors.primary, fontWeight: "bold" }}
+                >
+                  Usar senha padrão
+                </Text>{" "}
+                para utilizar a senha cadastrada no celular ou, se não hover,
+                não utilizar sistemas de segurança.
+              </Text>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button
+                onPress={() => {
+                  enableBiometrics();
+                  setIsNoBiometryAlertVisible(false);
+                }}
+              >
+                Usar senha padrão
+              </Button>
+              <Button
+                onPress={() => {
+                  setIsNoBiometryAlertVisible(false);
+                }}
+              >
+                Ok
+              </Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+
         <TouchableOpacity
           onPress={pickImage}
           style={{ borderColor: "#34d399", borderWidth: 4, borderRadius: 9999 }}
@@ -171,24 +343,172 @@ export function ConfigScreen({ navigation }: NavigationProps) {
             </Text>
           </TouchableOpacity>
         )}
+
+        <Divider style={{ width: "100%" }} />
+
+        <View style={{ padding: 14, width: "100%" }}>
+          <Card style={{ width: "100%" }}>
+            <Card.Content>
+              <Text style={{ fontWeight: "bold", fontSize: 20 }}>
+                Relatório de Atividades
+              </Text>
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  fontSize: 14,
+                  textAlign: "justify",
+                }}
+              >
+                Confira a quantidade total de atividades em cada modalidade
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <View>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{
+                      flexDirection: "row",
+                      gap: 14,
+                    }}
+                  >
+                    <CardWithNumber title="Total" number={totalActivities} />
+                    <CardWithNumber
+                      title="A fazer"
+                      number={totalActivities - checkedActivitiesSize}
+                    />
+                    <CardWithNumber
+                      title="Feitas"
+                      number={checkedActivitiesSize}
+                    />
+                    <CardWithNumber
+                      title="Prazo"
+                      number={withDeadlineActivitiesSize}
+                    />
+                  </ScrollView>
+                </View>
+              </View>
+            </Card.Content>
+          </Card>
+        </View>
+
+        <View style={{ padding: 14, width: "100%" }}>
+          <Card style={{ width: "100%" }}>
+            <Card.Content>
+              <Text style={{ fontWeight: "bold", fontSize: 20 }}>
+                Relatório da agenda
+              </Text>
+              <Text
+                style={{
+                  fontWeight: "bold",
+                  fontSize: 14,
+                  textAlign: "justify",
+                }}
+              >
+                Confira a quantidade total de atividades em cada dia
+              </Text>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  width: "100%",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginTop: 14,
+                }}
+              >
+                <View>
+                  <ScheduleChart data={schedule} />
+                </View>
+              </View>
+            </Card.Content>
+          </Card>
+        </View>
+
+        <Divider style={{ width: "100%" }} />
         <TouchableRipple style={{ width: "100%" }} onPress={toggleTheme}>
           <ConfigItemList
             title={"Modo noturno"}
             description={"Ativar/Desativar"}
             leftElement={(props) => (
-              <MaterialCommunityIcons
-                name="theme-light-dark"
-                size={30}
-                {...props}
-              />
+              <View
+                style={{
+                  paddingLeft: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="theme-light-dark"
+                  size={30}
+                  {...props}
+                />
+              </View>
             )}
             rightElement={(props) => (
-              <Switch
-                value={theme.dark}
-                onValueChange={toggleTheme}
-                {...props}
-                color={theme.colors.primary}
-              />
+              <View
+                style={{
+                  paddingLeft: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Switch
+                  value={theme.dark}
+                  onValueChange={toggleTheme}
+                  {...props}
+                  color={theme.colors.primary}
+                />
+              </View>
+            )}
+          />
+        </TouchableRipple>
+
+        <Divider style={{ width: "100%" }} />
+        <TouchableRipple
+          style={{ width: "100%" }}
+          onPress={toggleBiometricSecurity}
+        >
+          <ConfigItemList
+            title={"Habilitar Segurança"}
+            description={"Ativar/Desativar desbloqueio do app"}
+            leftElement={(props) => (
+              <View
+                style={{
+                  paddingLeft: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="fingerprint"
+                  size={30}
+                  {...props}
+                />
+              </View>
+            )}
+            rightElement={(props) => (
+              <View
+                style={{
+                  paddingLeft: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Switch
+                  value={isBiometricEnabled}
+                  onValueChange={toggleBiometricSecurity}
+                  {...props}
+                  color={theme.colors.primary}
+                />
+              </View>
             )}
           />
         </TouchableRipple>
@@ -202,10 +522,26 @@ export function ConfigScreen({ navigation }: NavigationProps) {
           <ConfigItemList
             title="Funcionalidades e ajuda"
             leftElement={(props) => (
-              <MaterialCommunityIcons name="tools" size={30} {...props} />
+              <View
+                style={{
+                  paddingLeft: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <MaterialCommunityIcons name="tools" size={30} {...props} />
+              </View>
             )}
             rightElement={(props) => (
-              <AntDesign name="right" size={30} {...props} />
+              <View
+                style={{
+                  paddingLeft: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <AntDesign name="right" size={30} {...props} />
+              </View>
             )}
           />
         </TouchableRipple>

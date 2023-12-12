@@ -110,7 +110,8 @@ export const cancelNotification = async (
 export const sendNotification = async (
   sec: number,
   title: string,
-  body: string
+  body: string,
+  data: { id: string }
 ) => {
   if (sec < 0 || !sec) return null;
   console.log("vai mandar em", sec, "segundos.");
@@ -118,7 +119,7 @@ export const sendNotification = async (
     content: {
       title: title,
       body: body,
-      data: [],
+      data: data,
     },
     trigger: {
       seconds: sec,
@@ -151,7 +152,8 @@ export const getNotificationIds = async (
   deliveryDay: string,
   deliveryTime: string,
   userName: string,
-  activityText: string
+  activityText: string,
+  activityId: string
 ): Promise<NotificationIds> => {
   const now = new Date();
   const [day, month, year] = deliveryDay.split("/");
@@ -165,7 +167,8 @@ export const getNotificationIds = async (
   const notificationIdExactTime = await sendNotification(
     secondsExact,
     userNameCapitalized + oUpperOrLowe + " prazo acabou... 😥️",
-    "Atividade: " + activityText
+    "Atividade: " + activityText,
+    { id: activityId }
   );
   const deliveryDate = new Date(`${formattedDeliveryDay}T00:00`);
   const secondsUntilDelivery = (deliveryDate.getTime() - now.getTime()) / 1000;
@@ -174,7 +177,8 @@ export const getNotificationIds = async (
     notificationIdBeginOfDay = await sendNotification(
       secondsUntilDelivery,
       userNameCapitalized + oUpperOrLowe + " prazo está acabando! ⏳️🔥️",
-      `Sua atividade se expira hoje: ${activityText}`
+      `Sua atividade se expira hoje: ${activityText}`,
+      { id: activityId }
     );
   }
   return { notificationIdExactTime, notificationIdBeginOfDay };

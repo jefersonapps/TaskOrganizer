@@ -8,7 +8,6 @@ import {
   Divider,
   IconButton,
   List,
-  Paragraph,
   Portal,
   Switch,
   Text,
@@ -24,7 +23,6 @@ import ColorPicker, {
   HueSlider,
   OpacitySlider,
   Panel1,
-  Swatches,
 } from "reanimated-color-picker";
 import {
   useMediaLibraryPermission,
@@ -34,7 +32,12 @@ import { GetPermission } from "../../components/GetPermission";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
-const PickColor = ({ showPickColor, setShowPickColor, setColor }: any) => {
+const PickColor = ({
+  showPickColor,
+  setShowPickColor,
+  setColor,
+  color = "blue",
+}: any) => {
   return (
     <Portal>
       <Dialog
@@ -46,7 +49,7 @@ const PickColor = ({ showPickColor, setShowPickColor, setColor }: any) => {
           <View>
             <ColorPicker
               style={{ gap: 14 }}
-              value="red"
+              value={color}
               onComplete={({ hex }) => setColor(hex)}
             >
               <Panel1 style={{ height: 160 }} />
@@ -79,6 +82,9 @@ export const CreateQRComponent = () => {
 
   const [showPickColor, setShowPickColor] = useState(false);
   const [showSecondPickColor, setShowSecondPickColor] = useState(false);
+  const [showPrimaryPickColor, setShowPrimaryColorPickColor] = useState(false);
+  const [showBackgroundPickColor, setShowBackgroundColorPickColor] =
+    useState(false);
   const [logoUri, setLogoUri] = useState<string | null>(null);
 
   console.log(firstColor, secondColor);
@@ -186,7 +192,11 @@ export const CreateQRComponent = () => {
       />
       <View style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
         <View
-          style={{ padding: 10, backgroundColor: "white", borderRadius: 10 }}
+          style={{
+            padding: 10,
+            backgroundColor: backgroundColor,
+            borderRadius: 10,
+          }}
           ref={viewShotRef}
         >
           <SvgQRCode
@@ -278,6 +288,90 @@ export const CreateQRComponent = () => {
           />
 
           <Divider style={{ width: "100%" }} />
+
+          <List.Item
+            title="Cor principal"
+            style={{ paddingLeft: 10 }}
+            left={() => (
+              <List.Icon
+                icon={() => (
+                  <View style={{ padding: 6 }}>
+                    <Ionicons
+                      name="color-palette"
+                      size={24}
+                      color={theme.colors.primary}
+                      style={{
+                        backgroundColor: theme.colors.secondaryContainer,
+                        padding: 8,
+                        borderRadius: 9999,
+                      }}
+                    />
+                  </View>
+                )}
+              />
+            )}
+            right={() => (
+              <IconButton
+                mode="contained"
+                disabled={color === "black" || color === "#000000"}
+                icon="broom"
+                onPress={() => setColor("black")}
+              ></IconButton>
+            )}
+            onPress={() => setShowPrimaryColorPickColor(true)}
+          />
+
+          <PickColor
+            showPickColor={showPrimaryPickColor}
+            setShowPickColor={setShowPrimaryColorPickColor}
+            setColor={setColor}
+            color={color}
+          />
+
+          <Divider style={{ width: "100%" }} />
+
+          <List.Item
+            title="Cor de fundo"
+            style={{ paddingLeft: 10 }}
+            left={() => (
+              <List.Icon
+                icon={() => (
+                  <View style={{ padding: 6 }}>
+                    <Ionicons
+                      name="color-palette"
+                      size={24}
+                      color={theme.colors.primary}
+                      style={{
+                        backgroundColor: theme.colors.secondaryContainer,
+                        padding: 8,
+                        borderRadius: 9999,
+                      }}
+                    />
+                  </View>
+                )}
+              />
+            )}
+            right={() => (
+              <IconButton
+                mode="contained"
+                disabled={
+                  backgroundColor === "white" || backgroundColor === "#ffffff"
+                }
+                icon="broom"
+                onPress={() => setBackgroundColor("white")}
+              ></IconButton>
+            )}
+            onPress={() => setShowBackgroundColorPickColor(true)}
+          />
+
+          <PickColor
+            showPickColor={showBackgroundPickColor}
+            setShowPickColor={setShowBackgroundColorPickColor}
+            setColor={setBackgroundColor}
+            color={backgroundColor}
+          />
+          <Divider style={{ width: "100%" }} />
+
           <List.Item
             title="Ativar gradiente linear"
             style={{ paddingLeft: 10 }}
@@ -356,6 +450,7 @@ export const CreateQRComponent = () => {
             showPickColor={showPickColor}
             setShowPickColor={setShowPickColor}
             setColor={setFirstColor}
+            color={firstColor}
           />
 
           <List.Item
@@ -406,6 +501,7 @@ export const CreateQRComponent = () => {
             showPickColor={showSecondPickColor}
             setShowPickColor={setShowSecondPickColor}
             setColor={setSecondColor}
+            color={secondColor}
           />
         </View>
       </View>

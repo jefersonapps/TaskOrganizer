@@ -28,9 +28,12 @@ import { TopBarComponent } from "./TopBarComponent";
 import * as Haptics from "expo-haptics";
 import DraggableFlatList from "react-native-draggable-flatlist";
 
-// Definindo o tipo de atividade
-
 type SheduleNavigation = NativeStackNavigationProp<RootStackSheduleParamList>;
+
+export type ScheduleMultipleDelete = {
+  day: string;
+  id: string;
+};
 
 export const ScheduleScreen = () => {
   const theme = useAppTheme();
@@ -104,6 +107,63 @@ export const ScheduleScreen = () => {
     isActive: boolean;
   }
 
+  const [selectedSchedulesActivities, setSelectedScheduleActivities] = useState<
+    ScheduleMultipleDelete[]
+  >([]);
+
+  const handleLongPress = useCallback(
+    (id: string, day: string) => {
+      if (selectedSchedulesActivities.length === 0) {
+        setSelectedScheduleActivities([{ id: id, day: day }]);
+      }
+    },
+    [selectedSchedulesActivities]
+  );
+
+  const handlePress = useCallback(
+    (id: string, day: string) => {
+      if (selectedSchedulesActivities.length < 1) return;
+      setSelectedScheduleActivities((prevSelectedActivities) => {
+        const activityExists = prevSelectedActivities.find(
+          (activity) => activity.id === id
+        );
+
+        if (activityExists) {
+          return prevSelectedActivities.filter(
+            (activity) => activity.id !== id
+          );
+        } else {
+          return [...prevSelectedActivities, { id: id, day: day }];
+        }
+      });
+    },
+    [selectedSchedulesActivities]
+  );
+
+  const handleDeleteMultiple = useCallback(
+    (activities: ScheduleMultipleDelete[]) => {
+      activities.forEach((activity) => {
+        sheduleDispatch({
+          type: "delete",
+          id: activity.id,
+          day: activity.day,
+        });
+      });
+      setSelectedScheduleActivities([]);
+    },
+    []
+  );
+  const [confirmDeleteMultiples, setConfirmDeleteMultiples] = useState(false);
+
+  const deleteSelectedActivities = useCallback(() => {
+    handleDeleteMultiple(selectedSchedulesActivities);
+    setConfirmDeleteMultiples(false);
+  }, [selectedSchedulesActivities, handleDeleteMultiple]);
+
+  const handleConfirmDeleteMultiples = useCallback(() => {
+    setConfirmDeleteMultiples(true);
+  }, []);
+
   const renderItem = ({ item, drag, isActive }: RenderItemProps) => {
     return (
       <SheduleCard
@@ -112,10 +172,14 @@ export const ScheduleScreen = () => {
         handleEdit={handleUpdate}
         item={item}
         isActive={isActive}
-        onLongPress={() => {
+        onDrag={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
           drag();
         }}
+        onLongPress={handleLongPress}
+        onPress={handlePress}
+        selectedSchedules={selectedSchedulesActivities}
+        day={daysOfWeek[activeTab]}
       />
     );
   };
@@ -129,6 +193,28 @@ export const ScheduleScreen = () => {
       });
     },
     [activeTab]
+  );
+
+  const selectAllScheduleActivities = useCallback(() => {
+    if (schedule[daysOfWeek[activeTab]].length === 0) return;
+
+    setSelectedScheduleActivities((prev) => {
+      const newActivities = schedule[daysOfWeek[activeTab]]
+        .filter(
+          (activity) => !prev.some((selected) => selected.id === activity.id)
+        )
+        .map((activity) => ({
+          id: activity.id,
+          day: daysOfWeek[activeTab],
+        }));
+
+      return [...prev, ...newActivities];
+    });
+  }, [schedule, activeTab]);
+
+  const activitiesForTheDay = schedule[daysOfWeek[activeTab]];
+  const selectedActivitiesForTheDay = selectedSchedulesActivities.filter(
+    (activity) => activity.day === daysOfWeek[activeTab]
   );
 
   return (
@@ -149,27 +235,75 @@ export const ScheduleScreen = () => {
         </Dialog>
       </Portal>
 
+      <Portal>
+        <Dialog
+          visible={!!confirmDeleteMultiples}
+          onDismiss={() => setConfirmDeleteMultiples(false)}
+        >
+          <Dialog.Title>Remover Atividades</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>
+              Tem certeza que quer remover as{" "}
+              {selectedSchedulesActivities.length} atividades selecionadas?
+            </Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setConfirmDeleteMultiples(false)}>
+              Cancelar
+            </Button>
+            <Button onPress={deleteSelectedActivities}>Sim</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
       <TopBarComponent setActiveTab={setActiveTab} activeTab={activeTab} />
 
+      {selectedSchedulesActivities.length > 0 && (
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginTop: 14,
+            paddingHorizontal: 14,
+          }}
+        >
+          {/* <Button
+            mode="contained"
+            onPress={() => setSelectedScheduleActivities([])}
+          >
+            Cancelar
+          </Button> */}
+          <Button
+            style={{ marginRight: 14 }}
+            icon={
+              selectedActivitiesForTheDay.length === activitiesForTheDay.length
+                ? "circle"
+                : "circle-outline"
+            }
+            mode="outlined"
+            onPress={selectAllScheduleActivities}
+          >
+            Todas
+          </Button>
+          <Button
+            mode="contained"
+            onPress={handleConfirmDeleteMultiples}
+            icon="delete"
+          >
+            Apagar: {selectedSchedulesActivities.length}
+          </Button>
+        </View>
+      )}
+
       {schedule[daysOfWeek[activeTab]]?.length > 0 ? (
-        // <FlatList
-        //   data={schedule[daysOfWeek[activeTab]] || []}
-        //   keyExtractor={(item) => item.id}
-        //   renderItem={({ item }) => (
-
-        //     <SheduleCard
-        //       swipeDirection={swipeDirection}
-        //       handleDelete={handleDelete}
-        //       handleEdit={handleUpdate}
-        //       item={item}
-        //     />
-        //   )}
-        //   contentContainerStyle={{ flexGrow: 1 }}
-        // />
-
         <View style={{ flex: 1 }}>
           <DraggableFlatList
-            contentContainerStyle={{ paddingBottom: 80 }}
+            contentContainerStyle={{
+              paddingBottom: 80,
+
+              paddingTop: 14,
+            }}
             data={schedule[daysOfWeek[activeTab]] || []}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
@@ -230,6 +364,21 @@ export const ScheduleScreen = () => {
           )}
         </View>
       </View>
+
+      {selectedSchedulesActivities.length > 0 && (
+        <FAB
+          style={{
+            position: "absolute",
+            margin: 16,
+            left: 0,
+            bottom: 0,
+            zIndex: 999,
+            backgroundColor: theme.colors.surfaceVariant,
+          }}
+          icon="window-close"
+          onPress={() => setSelectedScheduleActivities([])}
+        />
+      )}
 
       <FAB
         style={{

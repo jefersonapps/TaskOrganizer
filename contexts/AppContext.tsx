@@ -101,5 +101,6 @@ export const AppContext = createContext({
   ) => {},
   ocrResult: "" as string,
   setOcrResult: (value: string | ((prevState: string) => string)) => {},
-  isDarkTheme: true as boolean,
+  isBiometricEnabled: false as boolean,
+  setIsBiometricEnabled: (value: boolean) => {},
 });

@@ -34,19 +34,18 @@ import {
   Dialog,
   FAB,
   Title,
-  Text,
+  IconButton,
 } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
 import { CardComponent } from "./CardComponent";
 import { ChipItemComponent } from "./ChipItemComponent";
 import { ProgressBar } from "../../components/ProgressBar";
-import { CircleBadgeComponent } from "./CircleBadgeComponent";
 import { cancelNotification } from "../../helpers/helperFunctions";
-import { LinearGradient } from "expo-linear-gradient";
 import DraggableFlatList from "react-native-draggable-flatlist";
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+
 dayjs.extend(customParseFormat);
 
 type ActivitiesRoute = RouteProp<RootStackParamList, "EditActivity">;
@@ -66,11 +65,15 @@ type PriorityLevels = {
   baixa: number;
 };
 
+export type ActivityMultipleDelete = {
+  id: string;
+  identifier: NotificationIdType;
+};
+
 export const ActivitiesScreen = memo(() => {
   const route = useRoute<ActivitiesRoute>();
   const navigation = useNavigation<ActivitiesNavigation>();
-  const { activities, activitiesDispatch, image, isDarkTheme } =
-    useContext(AppContext);
+  const { activities, activitiesDispatch, image } = useContext(AppContext);
 
   const [activitieToDelete, setActivitieToDelete] = useState<{
     id: string;
@@ -109,6 +112,66 @@ export const ActivitiesScreen = memo(() => {
       cancelNotification(activitieToDelete?.identifier.notificationIdExactTime);
     }
   }, [activitieToDelete]);
+
+  const [selectedActivities, setSelectedActivities] = useState<
+    ActivityMultipleDelete[]
+  >([]);
+
+  const handleLongPress = useCallback(
+    (id: string, identifier: NotificationIdType) => {
+      if (selectedActivities.length === 0) {
+        setSelectedActivities([{ id, identifier }]);
+      }
+    },
+    [selectedActivities]
+  );
+
+  const handlePress = useCallback(
+    (id: string, identifier: NotificationIdType) => {
+      if (selectedActivities.length < 1) return;
+      setSelectedActivities((prevSelectedActivities) => {
+        const activityExists = prevSelectedActivities.find(
+          (activity) => activity.id === id
+        );
+
+        if (activityExists) {
+          return prevSelectedActivities.filter(
+            (activity) => activity.id !== id
+          );
+        } else {
+          return [...prevSelectedActivities, { id, identifier }];
+        }
+      });
+    },
+    [selectedActivities]
+  );
+
+  const handleDeleteMultiple = useCallback(
+    (activities: ActivityMultipleDelete[]) => {
+      activities.forEach((activity) => {
+        activitiesDispatch({ type: "delete", id: activity.id });
+
+        if (activity.identifier?.notificationIdBeginOfDay) {
+          cancelNotification(activity.identifier.notificationIdBeginOfDay);
+        }
+        if (activity.identifier?.notificationIdExactTime) {
+          cancelNotification(activity.identifier.notificationIdExactTime);
+        }
+      });
+      setSelectedActivities([]);
+    },
+    []
+  );
+  const [confirmDeleteMultiples, setConfirmDeleteMultiples] = useState(false);
+
+  const deleteSelectedActivities = useCallback(() => {
+    handleDeleteMultiple(selectedActivities);
+    setConfirmDeleteMultiples(false);
+  }, [selectedActivities, handleDeleteMultiple]);
+
+  const handleConfirmDeleteMultiples = useCallback(() => {
+    setConfirmDeleteMultiples(true);
+  }, []);
 
   const checkActivity = useCallback(
     (id: string, identifier: NotificationIdType) => {
@@ -207,18 +270,32 @@ export const ActivitiesScreen = memo(() => {
     isActive: boolean;
   }
 
+  const selectAllActivities = useCallback(() => {
+    if (filteredActivities.length === 0) return;
+    setSelectedActivities(
+      filteredActivities.map((activity) => ({
+        id: activity.id,
+        identifier: activity.notificationId ? activity.notificationId : null,
+      }))
+    );
+  }, [filteredActivities]);
+
   const renderItem = ({ item, drag, isActive }: RenderItemProps) => {
     return (
       //Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
       <CardComponent
         item={item}
         handleDelete={handleDelete}
         checkActivity={checkActivity}
         isActive={isActive}
-        onLongPress={() => {
+        onDrag={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
           drag();
         }}
+        onLongPress={handleLongPress}
+        onPress={handlePress}
+        selectedActivities={selectedActivities}
       />
     );
   };
@@ -244,6 +321,27 @@ export const ActivitiesScreen = memo(() => {
           <Dialog.Actions>
             <Button onPress={() => setActivitieToDelete(null)}>Cancelar</Button>
             <Button onPress={confirmDelete}>Ok</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      <Portal>
+        <Dialog
+          visible={!!confirmDeleteMultiples}
+          onDismiss={() => setConfirmDeleteMultiples(false)}
+        >
+          <Dialog.Title>Remover Atividades</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>
+              Tem certeza que quer remover as {selectedActivities.length}{" "}
+              atividades selecionadas?
+            </Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setConfirmDeleteMultiples(false)}>
+              Cancelar
+            </Button>
+            <Button onPress={deleteSelectedActivities}>Sim</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -358,33 +456,40 @@ export const ActivitiesScreen = memo(() => {
             />
           </ScrollView>
         </View>
+      </View>
+
+      {selectedActivities.length > 0 && (
         <View
           style={{
+            width: "100%",
             flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-            paddingHorizontal: 8,
+            justifyContent: "space-between",
+            marginBottom: 14,
+            paddingHorizontal: 14,
           }}
         >
-          <LinearGradient
-            colors={["transparent", theme.colors.surface]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={{
-              height: "100%",
-              width: 40,
-              position: "absolute",
-              left: -40,
-            }}
-          />
+          <Button
+            style={{ marginRight: 14 }}
+            icon={
+              selectedActivities.length === filteredActivities.length
+                ? "circle"
+                : "circle-outline"
+            }
+            mode="outlined"
+            onPress={selectAllActivities}
+          >
+            Todas
+          </Button>
 
-          <Text style={{ fontWeight: "bold" }}>Total: </Text>
-          <CircleBadgeComponent active={false}>
-            {String(totalActivities)}
-          </CircleBadgeComponent>
+          <Button
+            mode="contained"
+            onPress={handleConfirmDeleteMultiples}
+            icon="delete"
+          >
+            {selectedActivities.length}
+          </Button>
         </View>
-      </View>
+      )}
 
       {filteredActivities.length > 0 ? (
         ["all", "completed", "todo"].includes(filter) ? (
@@ -407,7 +512,9 @@ export const ActivitiesScreen = memo(() => {
                 item={item}
                 handleDelete={handleDelete}
                 checkActivity={checkActivity}
-                onLongPress={() => {}}
+                onLongPress={handleLongPress}
+                onPress={handlePress}
+                selectedActivities={selectedActivities}
               />
             )}
           />
@@ -427,6 +534,20 @@ export const ActivitiesScreen = memo(() => {
         </View>
       )}
 
+      {selectedActivities.length > 0 && (
+        <FAB
+          style={{
+            position: "absolute",
+            margin: 16,
+            left: 0,
+            bottom: 0,
+            zIndex: 999,
+            backgroundColor: theme.colors.surfaceVariant,
+          }}
+          icon="window-close"
+          onPress={() => setSelectedActivities([])}
+        />
+      )}
       <FAB
         style={{
           position: "absolute",

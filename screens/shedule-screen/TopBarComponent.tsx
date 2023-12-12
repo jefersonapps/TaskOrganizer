@@ -59,7 +59,7 @@ export const TopBarComponent = ({ setActiveTab, activeTab }: TopTabsProps) => {
                 },
               ]}
             >
-              {day}
+              {day !== "Sab" ? day : "Sáb"}
             </Text>
           </TouchableOpacity>
         ))}

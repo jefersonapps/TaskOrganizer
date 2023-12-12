@@ -47,7 +47,8 @@
     "react-native-webview": "^13.6.3",
     "react-navigation-stack": "^2.10.4",
     "reanimated-color-picker": "^2.4.1",
-    "vision-camera-ocr": "^1.0.0"
+    "vision-camera-ocr": "^1.0.0",
+    "expo-local-authentication": "~13.4.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

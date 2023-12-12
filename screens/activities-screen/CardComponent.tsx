@@ -1,6 +1,14 @@
-import { useCallback, useContext } from "react";
-import { View } from "react-native";
-import { Card, Chip, IconButton, Paragraph, Title } from "react-native-paper";
+import { useCallback, useContext, useEffect, useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
+import {
+  Badge,
+  Card,
+  Chip,
+  IconButton,
+  Paragraph,
+  Text,
+  Title,
+} from "react-native-paper";
 import {
   ActivityType,
   AppContext,
@@ -12,13 +20,16 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "./ActivitiesStack";
 import { formatTimeStamp } from "../../helpers/helperFunctions";
 import { useAppTheme } from "../../theme/Theme";
+import * as Haptics from "expo-haptics";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 dayjs.extend(customParseFormat);
 import utc from "dayjs/plugin/utc"; // Importando o plugin utc
 dayjs.extend(utc);
 import timezone from "dayjs/plugin/timezone";
+import { ActivityMultipleDelete } from "./ActivitiesScreen";
 dayjs.extend(timezone);
+import * as Notify from "expo-notifications";
 
 type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
 
@@ -26,8 +37,11 @@ interface CardComponentProps {
   item: ActivityType;
   handleDelete: (id: string, identifier: NotificationIdType) => void;
   checkActivity: (id: string, identifier: NotificationIdType) => void;
-  onLongPress: () => void;
+  onLongPress: (id: string, identifier: NotificationIdType) => void;
+  onPress: (id: string, identifier: NotificationIdType) => void;
+  selectedActivities: ActivityMultipleDelete[];
   isActive?: boolean;
+  onDrag?: () => void;
 }
 
 export const CardComponent = ({
@@ -36,6 +50,9 @@ export const CardComponent = ({
   checkActivity,
   onLongPress,
   isActive,
+  onPress,
+  selectedActivities,
+  onDrag,
 }: CardComponentProps) => {
   const { activities } = useContext(AppContext);
   const navigation = useNavigation<ActivitiesNavigation>();
@@ -85,76 +102,141 @@ export const CardComponent = ({
       : theme.colors.tertiaryContainer;
   }
 
-  return (
-    <View style={{ flex: 1, alignItems: "stretch" }}>
-      <Card
-        onLongPress={onLongPress}
-        style={{
-          margin: 10,
-          borderLeftWidth: 10,
-          borderLeftColor:
-            priorityColors[item.priority as keyof typeof priorityColors],
+  const isSelected = selectedActivities.some(
+    (activity) => activity.id === item.id
+  );
 
-          borderTopWidth: theme.dark ? 1 : 0,
-          borderTopColor: theme.dark ? "gray" : undefined,
-          borderBottomWidth: theme.dark ? 1 : 0,
-          borderBottomColor: theme.dark ? "#4d4b4b" : undefined,
-          borderRightWidth: theme.dark ? 1 : 0,
-          borderRightColor: theme.dark ? "#4d4b4b" : undefined,
-          borderWidth: isActive ? 1 : 0,
-          borderColor: isActive ? theme.colors.inversePrimary : undefined,
+  const [idOfNotiticationActivity, setIdOfNotiticationActivity] =
+    useState(null);
+
+  Notify.addNotificationReceivedListener((response) => {
+    const { id } = response.request.content.data;
+    setIdOfNotiticationActivity(id);
+
+    setTimeout(() => {
+      setIdOfNotiticationActivity(null);
+    }, 5000);
+  });
+
+  return (
+    <Pressable
+      onPress={() => {
+        onPress(item.id, item.notificationId ? item.notificationId : null);
+      }}
+      onLongPress={() => {
+        onLongPress(item.id, item.notificationId ? item.notificationId : null);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      }}
+    >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
         }}
       >
-        <Card.Content>
-          {/* <Icon name="priority-high" color={priorityColors[item.priority]} /> */}
-          <Chip icon="clock-outline">
-            {item.isEdited ? "Editada" : "Criada"} em:{" "}
-            {formatTimeStamp(item.timeStamp)}
-          </Chip>
-          <View style={{ paddingVertical: 10 }}>
-            {item.title && (
-              <Title style={{ fontWeight: "bold" }}>{item.title}</Title>
-            )}
-            <Paragraph>{item.text}</Paragraph>
-          </View>
-
-          {item.deliveryDay && (
-            <Chip icon="calendar-clock" style={{ backgroundColor: color }}>
-              {status}
-              {item.deliveryDay} {item.deliveryTime && "às"}{" "}
-              {item.deliveryTime.slice(0, -3)}
-            </Chip>
-          )}
-        </Card.Content>
-        <Card.Actions>
-          <IconButton icon="pencil" onPress={() => handleEdit(item.id)} />
+        {selectedActivities.length > 0 && (
           <IconButton
-            icon="delete"
-            onPress={() =>
-              handleDelete(
-                item.id,
-
-                item.notificationId?.notificationIdBeginOfDay ||
-                  item.notificationId?.notificationIdExactTime
-                  ? item.notificationId
-                  : null
-              )
-            }
-          />
-
-          <IconButton
-            icon="check"
-            onPress={() =>
-              checkActivity(
+            icon={isSelected ? "check" : "circle-outline"}
+            mode={isSelected ? "contained" : "outlined"}
+            onPress={() => {
+              onPress(
                 item.id,
                 item.notificationId ? item.notificationId : null
-              )
-            }
-            iconColor={item.checked ? "green" : undefined}
-            containerColor={item.checked ? "#34d399" : undefined}
+              );
+            }}
+            style={{ marginLeft: 14 }}
           />
-        </Card.Actions>
-      </Card>
-    </View>
+        )}
+        <View
+          style={{
+            flex: 1,
+            alignItems: "stretch",
+            position: "relative",
+          }}
+        >
+          {idOfNotiticationActivity === item.id && (
+            <Badge
+              style={{ position: "absolute", zIndex: 999, right: 14, top: 0 }}
+            >
+              !
+            </Badge>
+          )}
+          <Card
+            style={{
+              margin: 10,
+              borderLeftWidth: 10,
+              borderLeftColor:
+                priorityColors[item.priority as keyof typeof priorityColors],
+
+              borderTopWidth: theme.dark ? 1 : 0,
+              borderTopColor: theme.dark ? "gray" : undefined,
+              borderBottomWidth: theme.dark ? 1 : 0,
+              borderBottomColor: theme.dark ? "#4d4b4b" : undefined,
+              borderRightWidth: theme.dark ? 1 : 0,
+              borderRightColor: theme.dark ? "#4d4b4b" : undefined,
+              borderWidth: isActive ? 1 : 0,
+              borderColor: isActive ? theme.colors.inversePrimary : undefined,
+            }}
+          >
+            <Card.Content>
+              {/* <Icon name="priority-high" color={priorityColors[item.priority]} /> */}
+              <Chip icon="clock-outline">
+                {item.isEdited ? "Editada" : "Criada"} em:{" "}
+                {formatTimeStamp(item.timeStamp)}
+              </Chip>
+              <View style={{ paddingVertical: 10 }}>
+                {item.title && (
+                  <Title style={{ fontWeight: "bold" }}>{item.title}</Title>
+                )}
+
+                <Paragraph>{item.text}</Paragraph>
+              </View>
+
+              {item.deliveryDay && (
+                <Chip icon="calendar-clock" style={{ backgroundColor: color }}>
+                  {status}
+                  {item.deliveryDay} {item.deliveryTime && "às"}{" "}
+                  {item.deliveryTime.slice(0, -3)}
+                </Chip>
+              )}
+            </Card.Content>
+
+            <Card.Actions style={{ overflow: "hidden" }}>
+              {onDrag && (
+                <Pressable onLongPress={onDrag}>
+                  <IconButton icon="drag" mode="contained" />
+                </Pressable>
+              )}
+              <IconButton icon="pencil" onPress={() => handleEdit(item.id)} />
+              <IconButton
+                icon="delete"
+                onPress={() =>
+                  handleDelete(
+                    item.id,
+
+                    item.notificationId?.notificationIdBeginOfDay ||
+                      item.notificationId?.notificationIdExactTime
+                      ? item.notificationId
+                      : null
+                  )
+                }
+              />
+
+              <IconButton
+                icon="check"
+                onPress={() =>
+                  checkActivity(
+                    item.id,
+                    item.notificationId ? item.notificationId : null
+                  )
+                }
+                iconColor={item.checked ? "green" : undefined}
+                containerColor={item.checked ? "#34d399" : undefined}
+              />
+            </Card.Actions>
+          </Card>
+        </View>
+      </View>
+    </Pressable>
   );
 };

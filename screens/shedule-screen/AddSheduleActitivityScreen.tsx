@@ -48,11 +48,6 @@ export const AddSheduleActivitieScreen = memo(() => {
       day: sheduleDay,
       text: activityText,
       title: activityTitle,
-      //   priority: priority,
-      //   timeStamp: new Date().toISOString(),
-      //   isEdited: false,
-      //   deliveryDay: deliveryDay,
-      //   deliveryTime: deliveryTime,
     });
     navigation.goBack();
   };
