@@ -397,6 +397,7 @@ function App() {
                       size={size}
                     />
                   ),
+                  headerShown: false,
                 }}
               />
               <Tab.Screen

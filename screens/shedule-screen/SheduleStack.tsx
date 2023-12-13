@@ -17,11 +17,16 @@ const Stack = createNativeStackNavigator();
 export function SheduleStack() {
   const theme = useAppTheme();
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: theme.colors.customBackground },
+        headerTintColor: theme.colors.primary,
+      }}
+    >
       <Stack.Screen
         name="SheduleScreen"
         component={ScheduleScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true, title: "Agenda" }}
       />
       <Stack.Screen
         name="EditSheduleActivityScreen"

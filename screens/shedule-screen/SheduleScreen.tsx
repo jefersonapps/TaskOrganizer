@@ -1,19 +1,5 @@
-import React, {
-  useState,
-  useContext,
-  useCallback,
-  useRef,
-  useEffect,
-} from "react";
-import {
-  View,
-  FlatList,
-  Dimensions,
-  ScrollView,
-  Animated,
-  PanResponder,
-  TouchableOpacity,
-} from "react-native";
+import React, { useState, useContext, useCallback, useEffect } from "react";
+import { View, PanResponder, StatusBar } from "react-native";
 import LottieView from "lottie-react-native";
 import { FAB, Portal, Dialog, Paragraph, Button } from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
@@ -27,6 +13,10 @@ import { daysOfWeek } from "../../constants/constants";
 import { TopBarComponent } from "./TopBarComponent";
 import * as Haptics from "expo-haptics";
 import DraggableFlatList from "react-native-draggable-flatlist";
+import {
+  HandlerStateChangeEvent,
+  Swipeable,
+} from "react-native-gesture-handler";
 
 type SheduleNavigation = NativeStackNavigationProp<RootStackSheduleParamList>;
 
@@ -91,7 +81,7 @@ export const ScheduleScreen = () => {
         // Swipe right
         setSwipeDirection("right");
         setActiveTab((prevTab) => (prevTab > 0 ? prevTab - 1 : prevTab));
-      } else {
+      } else if (gestureState.dx < 0) {
         // Swipe left
         setSwipeDirection("left");
         setActiveTab((prevTab) =>
@@ -164,6 +154,12 @@ export const ScheduleScreen = () => {
     setConfirmDeleteMultiples(true);
   }, []);
 
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: selectedSchedulesActivities.length === 0,
+    });
+  }, [selectedSchedulesActivities, navigation]);
+
   const renderItem = ({ item, drag, isActive }: RenderItemProps) => {
     return (
       <SheduleCard
@@ -217,6 +213,34 @@ export const ScheduleScreen = () => {
     (activity) => activity.day === daysOfWeek[activeTab]
   );
 
+  const handleSwipeLeft = () => {
+    setActiveTab((prevTab) =>
+      prevTab < daysOfWeek.length - 1 ? prevTab + 1 : prevTab
+    );
+  };
+
+  const handleSwipeRight = () => {
+    setActiveTab((prevTab) => (prevTab > 0 ? prevTab - 1 : prevTab));
+  };
+
+  const handleSwipe = (
+    event: HandlerStateChangeEvent<Record<string, unknown>>
+  ) => {
+    if (
+      event.nativeEvent.velocityX &&
+      Number(event.nativeEvent.velocityX) > 0
+    ) {
+      handleSwipeRight();
+      setSwipeDirection("right");
+    } else if (
+      event.nativeEvent.velocityX &&
+      Number(event.nativeEvent.velocityX) < 0
+    ) {
+      handleSwipeLeft();
+      setSwipeDirection("left");
+    }
+  };
+
   return (
     <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
       <Portal>
@@ -256,24 +280,17 @@ export const ScheduleScreen = () => {
         </Dialog>
       </Portal>
 
-      <TopBarComponent setActiveTab={setActiveTab} activeTab={activeTab} />
-
       {selectedSchedulesActivities.length > 0 && (
         <View
           style={{
             width: "100%",
             flexDirection: "row",
             justifyContent: "space-between",
-            marginTop: 14,
+            marginTop: StatusBar.currentHeight,
+            paddingVertical: 6,
             paddingHorizontal: 14,
           }}
         >
-          {/* <Button
-            mode="contained"
-            onPress={() => setSelectedScheduleActivities([])}
-          >
-            Cancelar
-          </Button> */}
           <Button
             style={{ marginRight: 14 }}
             icon={
@@ -296,8 +313,15 @@ export const ScheduleScreen = () => {
         </View>
       )}
 
+      <TopBarComponent setActiveTab={setActiveTab} activeTab={activeTab} />
+
       {schedule[daysOfWeek[activeTab]]?.length > 0 ? (
-        <View style={{ flex: 1 }}>
+        <Swipeable
+          containerStyle={{
+            flex: 1,
+          }}
+          onActivated={handleSwipe}
+        >
           <DraggableFlatList
             contentContainerStyle={{
               paddingBottom: 80,
@@ -309,10 +333,15 @@ export const ScheduleScreen = () => {
             keyExtractor={(item) => item.id}
             onDragEnd={({ data }) => onDragEnd(data)}
           />
-        </View>
+        </Swipeable>
       ) : (
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        <Swipeable
+          containerStyle={{
+            flex: 1,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onActivated={handleSwipe}
         >
           <LottieView
             autoPlay
@@ -322,7 +351,7 @@ export const ScheduleScreen = () => {
             }}
             source={require("../../lottie-files/beach-vacation.json")}
           />
-        </View>
+        </Swipeable>
       )}
 
       <View

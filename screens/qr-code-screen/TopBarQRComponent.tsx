@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import {
   View,
   TouchableOpacity,
@@ -20,9 +20,9 @@ export const TopBarQRComponent = ({
   setActiveTab,
   activeTab,
 }: TopTabsProps) => {
-  const translateX = useRef(new Animated.Value(0)).current;
-  const theme = useAppTheme();
   const ITEM_WIDTH = 120; // Ajuste este valor conforme necessário
+  const translateX = useRef(new Animated.Value(activeTab * ITEM_WIDTH)).current;
+  const theme = useAppTheme();
 
   useEffect(() => {
     Animated.timing(translateX, {
@@ -31,10 +31,12 @@ export const TopBarQRComponent = ({
     }).start();
   }, [activeTab]);
 
-  const indicatorStyle = {
-    transform: [{ translateX }],
-    width: ITEM_WIDTH, // A largura do indicador deve ser igual à largura do item
-  };
+  const indicatorStyle = useMemo(() => {
+    return {
+      transform: [{ translateX }],
+      width: ITEM_WIDTH,
+    };
+  }, [activeTab]);
 
   return (
     <View>

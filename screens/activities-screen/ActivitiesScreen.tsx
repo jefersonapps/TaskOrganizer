@@ -405,66 +405,13 @@ export const ActivitiesScreen = memo(() => {
         <ProgressBar progressPercentage={percentageOfCheckedActivities} />
       </View>
 
-      <View
-        style={{
-          flexDirection: "row",
-          width: "100%",
-          paddingHorizontal: 14,
-          paddingBottom: 8,
-        }}
-      >
-        <View style={{ flex: 1 }}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              flexDirection: "row",
-              gap: 16,
-              paddingRight: 48,
-              marginTop: 15,
-              marginBottom: 5,
-              height: 40,
-            }}
-          >
-            <ChipItemComponent
-              chipFilter="todo"
-              filter={filter}
-              numberOfActivities={totalActivities - checkedActivitiesSize}
-              setFilter={setFilter}
-              chipTitle="A fazer"
-            />
-            <ChipItemComponent
-              chipFilter="completed"
-              filter={filter}
-              numberOfActivities={checkedActivitiesSize}
-              setFilter={setFilter}
-              chipTitle="Feitas"
-            />
-            <ChipItemComponent
-              chipFilter="withDeadline"
-              filter={filter}
-              numberOfActivities={withDeadlineActivitiesSize}
-              setFilter={setFilter}
-              chipTitle="Prazo"
-            />
-            <ChipItemComponent
-              chipFilter="withPriority"
-              filter={filter}
-              numberOfActivities={withPriorityActivitiesSize}
-              setFilter={setFilter}
-              chipTitle="Prioridade"
-            />
-          </ScrollView>
-        </View>
-      </View>
-
-      {selectedActivities.length > 0 && (
+      {selectedActivities.length > 0 ? (
         <View
           style={{
             width: "100%",
             flexDirection: "row",
             justifyContent: "space-between",
-            marginBottom: 14,
+            marginVertical: 14,
             paddingHorizontal: 14,
           }}
         >
@@ -488,6 +435,59 @@ export const ActivitiesScreen = memo(() => {
           >
             {selectedActivities.length}
           </Button>
+        </View>
+      ) : (
+        <View
+          style={{
+            flexDirection: "row",
+            width: "100%",
+            paddingHorizontal: 14,
+            paddingBottom: 8,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{
+                flexDirection: "row",
+                gap: 16,
+                paddingRight: 48,
+                marginTop: 15,
+                marginBottom: 5,
+                height: 40,
+              }}
+            >
+              <ChipItemComponent
+                chipFilter="todo"
+                filter={filter}
+                numberOfActivities={totalActivities - checkedActivitiesSize}
+                setFilter={setFilter}
+                chipTitle="A fazer"
+              />
+              <ChipItemComponent
+                chipFilter="completed"
+                filter={filter}
+                numberOfActivities={checkedActivitiesSize}
+                setFilter={setFilter}
+                chipTitle="Feitas"
+              />
+              <ChipItemComponent
+                chipFilter="withDeadline"
+                filter={filter}
+                numberOfActivities={withDeadlineActivitiesSize}
+                setFilter={setFilter}
+                chipTitle="Prazo"
+              />
+              <ChipItemComponent
+                chipFilter="withPriority"
+                filter={filter}
+                numberOfActivities={withPriorityActivitiesSize}
+                setFilter={setFilter}
+                chipTitle="Prioridade"
+              />
+            </ScrollView>
+          </View>
         </View>
       )}
 
