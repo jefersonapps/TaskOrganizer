@@ -26,6 +26,7 @@ export const useMediaLibraryPermission = () => {
 
   const requestMediaLibraryPermission = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log(status);
     setMediaLibraryPermission(status === "granted" ? "granted" : "denied");
   }, []);
 

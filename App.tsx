@@ -13,6 +13,7 @@ import {
   File,
   LatexAction,
   LatexType,
+  Scan,
   SheduleActivityType,
 } from "./contexts/AppContext";
 import {
@@ -206,6 +207,8 @@ function App() {
         return state.map((latex) =>
           latex.id === action.id ? { ...latex, code: action.code ?? "" } : latex
         );
+      case "reorder":
+        return action.newOrder ?? state;
       default:
         throw new Error();
     }
@@ -244,6 +247,13 @@ function App() {
   const [imageSource, setImageSource] = useState<string | null>("");
   const [ocrResult, setOcrResult] = useState("");
 
+  const [recentReaders, setRecentReaders] = useState<Scan[]>(
+    loadState("recentReaders") || []
+  );
+  useEffect(() => {
+    saveState("recentReaders", recentReaders);
+  }, [recentReaders]);
+
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isBiometricEnabled, setIsBiometricEnabled] = useState(
     loadState("isBiometricEnabled") || false
@@ -263,7 +273,6 @@ function App() {
   }
 
   useEffect(() => {
-    console.log(isAuthenticated);
     if (isBiometricEnabled && !isAuthenticated) {
       handleAuthentication();
     }
@@ -365,6 +374,8 @@ function App() {
               setOcrResult,
               isBiometricEnabled,
               setIsBiometricEnabled,
+              recentReaders,
+              setRecentReaders,
             }}
           >
             <Tab.Navigator
@@ -373,6 +384,7 @@ function App() {
                 headerTintColor: theme.colors.primary,
                 tabBarActiveTintColor: theme.colors.primary,
                 tabBarStyle: { backgroundColor: theme.colors.customBackground },
+                headerShown: false,
               }}
             >
               <Tab.Screen
@@ -382,7 +394,6 @@ function App() {
                   tabBarIcon: ({ color, size }) => (
                     <Ionicons name="list" color={color} size={size} />
                   ),
-                  headerShown: false,
                 }}
               />
 
@@ -397,7 +408,6 @@ function App() {
                       size={size}
                     />
                   ),
-                  headerShown: false,
                 }}
               />
               <Tab.Screen
@@ -438,14 +448,12 @@ function App() {
                       color={color}
                     />
                   ),
-                  headerShown: false,
                 }}
               />
               <Tab.Screen
                 name="Ajustes"
                 component={ConfigStack}
                 options={{
-                  headerShown: false,
                   tabBarIcon: ({ color, size }) => (
                     <Ionicons name="settings" color={color} size={size} />
                   ),

@@ -1,5 +1,11 @@
 import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Animated, Pressable } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Animated,
+  Pressable,
+  TouchableNativeFeedback,
+} from "react-native";
 import { IconButton, Card as PaperCard, Text, Title } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
 import { SheduleActivityType } from "../../contexts/AppContext";
@@ -55,11 +61,13 @@ export const SheduleCard = ({
   );
 
   return (
-    <Pressable
+    <TouchableNativeFeedback
+      background={TouchableNativeFeedback.Ripple("#807e7e15", false)}
       onPress={() => {
         onPress(item.id, day);
       }}
       onLongPress={() => onLongPress(item.id, day)}
+      useForeground
     >
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         {selectedSchedules.length > 0 && (
@@ -107,7 +115,7 @@ export const SheduleCard = ({
           </PaperCard>
         </Animated.View>
       </View>
-    </Pressable>
+    </TouchableNativeFeedback>
   );
 };
 

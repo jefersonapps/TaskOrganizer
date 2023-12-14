@@ -1,5 +1,10 @@
 import { useCallback, useContext, useEffect, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import {
+  Pressable,
+  ScrollView,
+  TouchableNativeFeedback,
+  View,
+} from "react-native";
 import {
   Badge,
   Card,
@@ -119,7 +124,7 @@ export const CardComponent = ({
   });
 
   return (
-    <Pressable
+    <TouchableNativeFeedback
       onPress={() => {
         onPress(item.id, item.notificationId ? item.notificationId : null);
       }}
@@ -127,6 +132,8 @@ export const CardComponent = ({
         onLongPress(item.id, item.notificationId ? item.notificationId : null);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       }}
+      background={TouchableNativeFeedback.Ripple("#807e7e15", false)}
+      useForeground
     >
       <View
         style={{
@@ -237,6 +244,6 @@ export const CardComponent = ({
           </Card>
         </View>
       </View>
-    </Pressable>
+    </TouchableNativeFeedback>
   );
 };

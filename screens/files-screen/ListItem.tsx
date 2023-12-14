@@ -10,7 +10,7 @@ interface ListItemProps {
   onDelete: (fileUri: string) => void;
   onDrag?: () => void;
   isActive: boolean;
-  onPress: (id: string) => void;
+  onPress: (id: string, uri: string) => void;
   selectedFiles: FilesMultipleDelete[];
 }
 
@@ -38,7 +38,7 @@ export const ListItem = ({
           icon={isSelected ? "check" : "circle-outline"}
           mode={isSelected ? "contained" : "outlined"}
           onPress={() => {
-            onPress(file.id);
+            onPress(file.id, file.uri);
           }}
           style={{ marginLeft: 14 }}
         />
@@ -46,7 +46,7 @@ export const ListItem = ({
       <View style={{ flex: 1 }}>
         <List.Item
           style={{
-            borderWidth: 1,
+            borderWidth: isActive ? 1 : 0,
             borderColor: isActive ? theme.colors.primary : theme.colors.surface,
             backgroundColor: isActive ? theme.colors.surface : undefined,
             borderRadius: 14,

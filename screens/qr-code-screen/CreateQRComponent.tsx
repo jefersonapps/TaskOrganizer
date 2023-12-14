@@ -110,11 +110,16 @@ export const CreateQRComponent = () => {
     }
   };
 
+  const { mediaLibraryPermission, requestMediaLibraryPermission } =
+    useMediaLibraryPermission();
+  const { saveImagePermission, requestSaveImagePermission } =
+    useSaveImagePermission();
+
   const saveImage = async (uri: string) => {
     try {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status === "granted") {
+      if (saveImagePermission === "granted") {
         await MediaLibrary.saveToLibraryAsync(uri);
+
         setIsImageSaved(true);
       }
     } catch (error) {
@@ -129,6 +134,7 @@ export const CreateQRComponent = () => {
         height: 440,
         quality: 1,
       });
+
       if (localUri) {
         saveImage(localUri);
       }
@@ -153,32 +159,31 @@ export const CreateQRComponent = () => {
     }
   };
 
-  const { mediaLibraryPermission, requestMediaLibraryPermission } =
-    useMediaLibraryPermission();
-  const { saveImagePermission, requestSaveImagePermission } =
-    useSaveImagePermission();
-
   if (mediaLibraryPermission === "denied") {
     return (
-      <GetPermission
-        getPermissionAfterSetInConfigs={requestMediaLibraryPermission}
-        title="A galeria não está disponível"
-        content="Desculpe, parece que não conseguimos acessar a galeria do seu dispositivo. 
-      Por favor, verifique as configurações de permissão de acesso a fotos e vídeos 
-      e tente novamente."
-      />
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <GetPermission
+          getPermissionAfterSetInConfigs={requestMediaLibraryPermission}
+          title="A galeria não está disponível"
+          content="Desculpe, parece que não conseguimos acessar a galeria do seu dispositivo. 
+        Por favor, verifique as configurações de permissão de acesso a fotos e vídeos 
+        e tente novamente."
+        />
+      </ScrollView>
     );
   }
 
   if (saveImagePermission === "denied") {
     return (
-      <GetPermission
-        getPermissionAfterSetInConfigs={requestSaveImagePermission}
-        title="Permissão de acesso à biblioteca de mídia necessária"
-        content="Precisamos de sua permissão para salvar imagens. Isso inclui acesso a fotos, 
-        vídeos e áudios na biblioteca de mídia do seu dispositivo. 
-        Por favor, permita o acesso nas configurações do seu dispositivo."
-      />
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <GetPermission
+          getPermissionAfterSetInConfigs={requestSaveImagePermission}
+          title="Permissão de acesso à biblioteca de mídia necessária"
+          content="Precisamos de sua permissão para salvar imagens. Isso inclui acesso a fotos, 
+          vídeos e áudios na biblioteca de mídia do seu dispositivo. 
+          Por favor, permita o acesso nas configurações do seu dispositivo."
+        />
+      </ScrollView>
     );
   }
 
@@ -193,7 +198,7 @@ export const CreateQRComponent = () => {
       <View style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
         <View
           style={{
-            padding: 10,
+            padding: 14,
             backgroundColor: backgroundColor,
             borderRadius: 10,
           }}

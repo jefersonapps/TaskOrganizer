@@ -26,7 +26,7 @@ export function SheduleStack() {
       <Stack.Screen
         name="SheduleScreen"
         component={ScheduleScreen}
-        options={{ headerShown: true, title: "Agenda" }}
+        options={{ headerShown: false, title: "Agenda" }}
       />
       <Stack.Screen
         name="EditSheduleActivityScreen"

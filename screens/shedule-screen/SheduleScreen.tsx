@@ -1,7 +1,14 @@
 import React, { useState, useContext, useCallback, useEffect } from "react";
 import { View, PanResponder, StatusBar } from "react-native";
 import LottieView from "lottie-react-native";
-import { FAB, Portal, Dialog, Paragraph, Button } from "react-native-paper";
+import {
+  FAB,
+  Portal,
+  Dialog,
+  Paragraph,
+  Button,
+  Text,
+} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
 
 import { useAppTheme } from "../../theme/Theme";
@@ -154,11 +161,12 @@ export const ScheduleScreen = () => {
     setConfirmDeleteMultiples(true);
   }, []);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: selectedSchedulesActivities.length === 0,
-    });
-  }, [selectedSchedulesActivities, navigation]);
+  // useEffect(() => {
+
+  //   navigation.setOptions({
+  //     headerShown: selectedSchedulesActivities.length === 0,
+  //   });
+  // }, [selectedSchedulesActivities, navigation]);
 
   const renderItem = ({ item, drag, isActive }: RenderItemProps) => {
     return (
@@ -279,8 +287,8 @@ export const ScheduleScreen = () => {
           </Dialog.Actions>
         </Dialog>
       </Portal>
-
-      {selectedSchedulesActivities.length > 0 && (
+      {/* Botões de apagar */}
+      {selectedSchedulesActivities.length > 0 ? (
         <View
           style={{
             width: "100%",
@@ -311,6 +319,31 @@ export const ScheduleScreen = () => {
             Apagar: {selectedSchedulesActivities.length}
           </Button>
         </View>
+      ) : (
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            paddingTop: StatusBar.currentHeight ?? 18 + 12,
+            paddingBottom: 12,
+            paddingHorizontal: 14,
+            backgroundColor: theme.colors.customBackground,
+            borderBottomWidth: 2,
+            borderBottomColor: theme.colors.surfaceDisabled,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: theme.colors.primary,
+              paddingVertical: 4,
+            }}
+          >
+            Agenda Semanal
+          </Text>
+        </View>
       )}
 
       <TopBarComponent setActiveTab={setActiveTab} activeTab={activeTab} />
@@ -325,7 +358,7 @@ export const ScheduleScreen = () => {
           <DraggableFlatList
             contentContainerStyle={{
               paddingBottom: 80,
-
+              backgroundColor: theme.colors.surface,
               paddingTop: 14,
             }}
             data={schedule[daysOfWeek[activeTab]] || []}

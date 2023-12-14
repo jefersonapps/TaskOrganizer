@@ -1,10 +1,23 @@
 import { useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import { Card, IconButton, Text } from "react-native-paper";
-import { ScrollView } from "react-native";
+import { ScrollView, TouchableOpacity } from "react-native";
+import { handleVisitSite, isValidURL } from "../../helpers/helperFunctions";
+import { useAppTheme } from "../../theme/Theme";
 
-export const CopyTextComponent = ({ text }: { text: string }) => {
+interface CopyTextComponentProps {
+  text: string;
+  validateLink?: boolean;
+  numberOfLines?: number;
+}
+
+export const CopyTextComponent = ({
+  text,
+  validateLink,
+  numberOfLines,
+}: CopyTextComponentProps) => {
   const [isCopied, setIsCopied] = useState(false);
+  const theme = useAppTheme();
 
   const copyToClipboard = async (text: string) => {
     setIsCopied(true);
@@ -25,7 +38,24 @@ export const CopyTextComponent = ({ text }: { text: string }) => {
           }}
         >
           <ScrollView>
-            <Text>{text}</Text>
+            {validateLink && isValidURL(text) ? (
+              <TouchableOpacity onPress={() => handleVisitSite(text)}>
+                <Text
+                  numberOfLines={numberOfLines ?? 2}
+                  ellipsizeMode="tail"
+                  style={{
+                    color: theme.colors.primary,
+                    textDecorationLine: "underline",
+                  }}
+                >
+                  {text}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <Text numberOfLines={numberOfLines ?? 2} ellipsizeMode="tail">
+                {text}
+              </Text>
+            )}
           </ScrollView>
           <IconButton
             style={{ marginRight: -10 }}

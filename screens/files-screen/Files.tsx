@@ -13,6 +13,7 @@ import {
   Portal,
   Paragraph,
   FAB,
+  Text,
 } from "react-native-paper";
 
 import * as DocumentPicker from "expo-document-picker";
@@ -26,6 +27,7 @@ import { ListItem } from "./ListItem";
 import LottieView from "lottie-react-native";
 import DraggableFlatList from "react-native-draggable-flatlist";
 import { useNavigation } from "@react-navigation/native";
+import Share, { ShareOptions } from "react-native-share";
 
 interface RenderItemProps {
   item: any; // Substitua YourItemType pelo tipo real do seu item
@@ -35,6 +37,7 @@ interface RenderItemProps {
 
 export type FilesMultipleDelete = {
   id: string;
+  uri: string;
 };
 
 export default function Files() {
@@ -94,16 +97,16 @@ export default function Files() {
   const [selectedFiles, setSelectedFiles] = useState<FilesMultipleDelete[]>([]);
 
   const handleLongPress = useCallback(
-    (id: string) => {
+    (id: string, uri: string) => {
       if (selectedFiles.length === 0) {
-        setSelectedFiles([{ id: id }]);
+        setSelectedFiles([{ id: id, uri: uri }]);
       }
     },
     [selectedFiles]
   );
 
   const handlePress = useCallback(
-    (id: string) => {
+    (id: string, uri: string) => {
       if (selectedFiles.length < 1) return;
       setSelectedFiles((prevselectedFiles) => {
         const activityExists = prevselectedFiles.find(
@@ -113,7 +116,7 @@ export default function Files() {
         if (activityExists) {
           return prevselectedFiles.filter((activity) => activity.id !== id);
         } else {
-          return [...prevselectedFiles, { id: id }];
+          return [...prevselectedFiles, { id: id, uri: uri }];
         }
       });
     },
@@ -144,15 +147,24 @@ export default function Files() {
     setSelectedFiles(
       files.map((currFile) => ({
         id: currFile.id,
+        uri: currFile.uri,
       }))
     );
   }, [files]);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: selectedFiles.length === 0,
-    });
-  }, [selectedFiles, navigation]);
+  const shareFiles = async (selectedFiles: FilesMultipleDelete[]) => {
+    const fileUris = selectedFiles.map((file) => file.uri);
+
+    const options: ShareOptions = {
+      urls: fileUris,
+    };
+
+    try {
+      await Share.open(options);
+    } catch (error) {
+      console.log("Error sharing files: ", error);
+    }
+  };
 
   return (
     <View
@@ -175,7 +187,7 @@ export default function Files() {
               backgroundColor: theme.colors.surfaceVariant,
             }}
             icon="share-variant"
-            // onPress={handleShareFiles}
+            onPress={() => shareFiles(selectedFiles)}
           />
 
           <FAB
@@ -255,7 +267,7 @@ export default function Files() {
         </Dialog>
       </Portal>
 
-      {selectedFiles.length > 0 && (
+      {selectedFiles.length > 0 ? (
         <View
           style={{
             width: "100%",
@@ -287,6 +299,31 @@ export default function Files() {
             {selectedFiles.length}
           </Button>
         </View>
+      ) : (
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            paddingTop: StatusBar.currentHeight ?? 18 + 12,
+            paddingBottom: 12,
+            paddingHorizontal: 14,
+            backgroundColor: theme.colors.customBackground,
+            borderBottomWidth: 2,
+            borderBottomColor: theme.colors.surfaceDisabled,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: theme.colors.primary,
+              paddingVertical: 4,
+            }}
+          >
+            Arquivos
+          </Text>
+        </View>
       )}
 
       {files.length > 0 ? (
@@ -294,17 +331,22 @@ export default function Files() {
           <DraggableFlatList
             contentContainerStyle={{ paddingBottom: 80 }}
             data={files}
+            ItemSeparatorComponent={() => <Divider style={{ width: "100%" }} />}
             renderItem={({ item: file, drag, isActive }) => {
               return (
                 <TouchableNativeFeedback
-                  background={TouchableNativeFeedback.Ripple("gray", false)}
-                  // onLongPress={() => handleShareFile(file.uri)}
+                  background={TouchableNativeFeedback.Ripple(
+                    "#807e7e15",
+                    false
+                  )}
                   onPress={() => {
                     if (selectedFiles.length === 0) {
                       handleOpenFile(file.uri);
+                    } else {
+                      handlePress(file.id, file.uri);
                     }
                   }}
-                  onLongPress={() => handleLongPress(file.id)}
+                  onLongPress={() => handleLongPress(file.id, file.uri)}
                 >
                   <View style={{ flex: 1, alignItems: "stretch" }}>
                     <ListItem

@@ -15,7 +15,11 @@ export function ConfigStack() {
         headerTintColor: theme.colors.primary,
       }}
     >
-      <Stack.Screen name="Config" component={ConfigScreen} />
+      <Stack.Screen
+        name="Config"
+        component={ConfigScreen}
+        options={{ title: "Ajustes e Relatórios" }}
+      />
       <Stack.Screen name="Functionalities" component={FunctionalitiesScreen} />
     </Stack.Navigator>
   );

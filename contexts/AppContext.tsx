@@ -34,6 +34,7 @@ export interface LatexAction {
   id?: string;
   code?: string;
   type: string;
+  newOrder?: LatexType[];
 }
 
 export interface Action {
@@ -61,6 +62,11 @@ export type SheduleActivityType = {
   id: string;
   text: string;
   title: string;
+};
+
+export type Scan = {
+  imageUri: string | null;
+  content: string;
 };
 
 export const AppContext = createContext({
@@ -103,4 +109,6 @@ export const AppContext = createContext({
   setOcrResult: (value: string | ((prevState: string) => string)) => {},
   isBiometricEnabled: false as boolean,
   setIsBiometricEnabled: (value: boolean) => {},
+  recentReaders: [] as Scan[],
+  setRecentReaders: (value: Scan[] | ((prevState: Scan[]) => Scan[])) => {},
 });

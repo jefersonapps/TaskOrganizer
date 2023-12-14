@@ -120,8 +120,8 @@ export const ScannerTab = () => {
         gap: 14,
       }}
     >
-      {code && <CopyTextComponent text={code} />}
-      {link && <CopyTextComponent text={link} />}
+      {code && <CopyTextComponent text={code} numberOfLines={4} />}
+      {link && <CopyTextComponent text={link} numberOfLines={4} />}
       <View
         style={{
           flexDirection: isValidURL(link) ? "row" : "column",
