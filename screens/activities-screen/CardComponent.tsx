@@ -11,6 +11,7 @@ import {
   Chip,
   IconButton,
   Paragraph,
+  Snackbar,
   Text,
   Title,
 } from "react-native-paper";
@@ -59,7 +60,7 @@ export const CardComponent = ({
   selectedActivities,
   onDrag,
 }: CardComponentProps) => {
-  const { activities } = useContext(AppContext);
+  const { activities, idOfNotification } = useContext(AppContext);
   const navigation = useNavigation<ActivitiesNavigation>();
   const handleEdit = useCallback((id: string) => {
     const activity = activities.find((a) => a.id === id);
@@ -111,17 +112,11 @@ export const CardComponent = ({
     (activity) => activity.id === item.id
   );
 
-  const [idOfNotiticationActivity, setIdOfNotiticationActivity] =
-    useState(null);
+  const [snackVisible, setSnackVisible] = useState(false);
 
-  Notify.addNotificationReceivedListener((response) => {
-    const { id } = response.request.content.data;
-    setIdOfNotiticationActivity(id);
+  const onToggleSnackBar = () => setSnackVisible(!snackVisible);
 
-    setTimeout(() => {
-      setIdOfNotiticationActivity(null);
-    }, 5000);
-  });
+  const onDismissSnackBar = () => setSnackVisible(false);
 
   return (
     <TouchableNativeFeedback
@@ -161,13 +156,30 @@ export const CardComponent = ({
             position: "relative",
           }}
         >
-          {idOfNotiticationActivity === item.id && (
+          {idOfNotification === item.id && (
             <Badge
+              onPress={onToggleSnackBar}
               style={{ position: "absolute", zIndex: 999, right: 14, top: 0 }}
             >
               !
             </Badge>
           )}
+
+          <Snackbar
+            style={{
+              zIndex: 999,
+              backgroundColor: theme.colors.surfaceVariant,
+            }}
+            visible={snackVisible}
+            onDismiss={onDismissSnackBar}
+            action={{
+              label: "Fechar",
+              onPress: onDismissSnackBar,
+              mode: "contained",
+            }}
+          >
+            <Text>A atividade está expirada!</Text>
+          </Snackbar>
           <Card
             style={{
               margin: 10,

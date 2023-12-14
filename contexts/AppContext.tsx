@@ -111,4 +111,5 @@ export const AppContext = createContext({
   setIsBiometricEnabled: (value: boolean) => {},
   recentReaders: [] as Scan[],
   setRecentReaders: (value: Scan[] | ((prevState: Scan[]) => Scan[])) => {},
+  idOfNotification: null as string | null | number,
 });

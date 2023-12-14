@@ -60,17 +60,27 @@ export const loadState = <T extends unknown>(key: string): T | undefined => {
 
 const Tab = createBottomTabNavigator();
 
-Notify.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowAlert: true,
-  }),
-});
-
 function App() {
   const { notificationPermission, requestNotificationPermission } =
     useNotificationPermission();
+
+  const [idOfNotification, setIdOfNotification] = useState(null);
+
+  useEffect(() => {
+    Notify.setNotificationHandler({
+      handleNotification: async (notification) => {
+        const { id } = notification.request.content.data;
+
+        setIdOfNotification(id);
+
+        return {
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: true,
+        };
+      },
+    });
+  }, []);
 
   const activitiesReducer: Reducer<ActivityType[], Action> = (
     state,
@@ -328,6 +338,7 @@ function App() {
             </Card.Actions>
           </Card>
         </View>
+        <StatusBar style={theme.dark ? "light" : "dark"} translucent />
       </PaperProvider>
     );
   }
@@ -340,7 +351,7 @@ function App() {
           title="Notificações não estão disponíveis"
           content="Desculpe, parece que não conseguimos enviar notificações para o seu dispositivo. Por favor, verifique as configurações de permissão de notificação e tente novamente."
         />
-        <StatusBar style={theme.dark ? "light" : "dark"} />
+        <StatusBar style={theme.dark ? "light" : "dark"} translucent />
       </PaperProvider>
     );
   }
@@ -376,6 +387,7 @@ function App() {
               setIsBiometricEnabled,
               recentReaders,
               setRecentReaders,
+              idOfNotification,
             }}
           >
             <Tab.Navigator
@@ -385,6 +397,7 @@ function App() {
                 tabBarActiveTintColor: theme.colors.primary,
                 tabBarStyle: { backgroundColor: theme.colors.customBackground },
                 headerShown: false,
+                tabBarHideOnKeyboard: true,
               }}
             >
               <Tab.Screen
@@ -462,7 +475,7 @@ function App() {
             </Tab.Navigator>
           </AppContext.Provider>
         </NavigationContainer>
-        <StatusBar style={theme.dark ? "light" : "dark"} />
+        <StatusBar style={theme.dark ? "light" : "dark"} translucent />
       </GestureHandlerRootView>
     </PaperProvider>
   );

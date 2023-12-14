@@ -116,21 +116,6 @@ export function ConfigScreen({ navigation }: NavigationProps) {
 
   const [isEditingName, setIsEditingName] = useState(false);
 
-  const { mediaLibraryPermission, requestMediaLibraryPermission } =
-    useMediaLibraryPermission();
-
-  if (mediaLibraryPermission === "denied") {
-    return (
-      <GetPermission
-        getPermissionAfterSetInConfigs={requestMediaLibraryPermission}
-        title="A galeria não está disponível"
-        content="Desculpe, parece que não conseguimos acessar a galeria do seu dispositivo. 
-      Por favor, verifique as configurações de permissão de acesso a fotos e vídeos 
-      e tente novamente."
-      />
-    );
-  }
-
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -200,6 +185,21 @@ export function ConfigScreen({ navigation }: NavigationProps) {
       }
     }
   };
+
+  const { mediaLibraryPermission, requestMediaLibraryPermission } =
+    useMediaLibraryPermission();
+
+  if (mediaLibraryPermission === "denied") {
+    return (
+      <GetPermission
+        getPermissionAfterSetInConfigs={requestMediaLibraryPermission}
+        title="A galeria não está disponível"
+        content="Desculpe, parece que não conseguimos acessar a galeria do seu dispositivo. 
+    Por favor, verifique as configurações de permissão de acesso a fotos e vídeos 
+    e tente novamente."
+      />
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>

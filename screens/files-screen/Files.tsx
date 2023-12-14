@@ -14,6 +14,8 @@ import {
   Paragraph,
   FAB,
   Text,
+  TextInput,
+  IconButton,
 } from "react-native-paper";
 
 import * as DocumentPicker from "expo-document-picker";
@@ -44,7 +46,7 @@ export default function Files() {
   const { files, setFiles } = useContext(AppContext);
   const [visible, setVisible] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
-  const navigation = useNavigation();
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const theme = useAppTheme();
 
@@ -72,15 +74,6 @@ export default function Files() {
     } catch (error) {
       setVisible(true);
     }
-  };
-
-  const handleShareFiles = async (fileUri: string) => {
-    if (!(await Sharing.isAvailableAsync())) {
-      alert(`Uh oh, sharing isn't available on your platform`);
-      return;
-    }
-
-    await Sharing.shareAsync(fileUri);
   };
 
   const handleDelete = useCallback((id: string) => {
@@ -165,6 +158,19 @@ export default function Files() {
       console.log("Error sharing files: ", error);
     }
   };
+
+  const filterFiles = (files: File[], query: string) => {
+    if (!query) {
+      return files;
+    }
+
+    const normalizedQuery = query.toLowerCase();
+    return files.filter((file) =>
+      file.name.toLowerCase().includes(normalizedQuery)
+    );
+  };
+
+  const filteredFiles = filterFiles(files, searchQuery);
 
   return (
     <View
@@ -300,37 +306,48 @@ export default function Files() {
           </Button>
         </View>
       ) : (
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            paddingTop: StatusBar.currentHeight ?? 18 + 12,
-            paddingBottom: 12,
-            paddingHorizontal: 14,
-            backgroundColor: theme.colors.customBackground,
-            borderBottomWidth: 2,
-            borderBottomColor: theme.colors.surfaceDisabled,
-          }}
-        >
-          <Text
+        <>
+          <View
             style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: theme.colors.primary,
-              paddingVertical: 4,
+              width: "100%",
+              flexDirection: "row",
+              justifyContent: "space-between",
+              paddingTop: StatusBar.currentHeight ?? 18 + 12,
+              paddingBottom: 12,
+              paddingHorizontal: 14,
+              backgroundColor: theme.colors.customBackground,
+              borderBottomWidth: 2,
+              borderBottomColor: theme.colors.surfaceDisabled,
             }}
           >
-            Arquivos
-          </Text>
-        </View>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: theme.colors.primary,
+                paddingVertical: 4,
+              }}
+            >
+              Arquivos
+            </Text>
+          </View>
+          <View style={{ flexDirection: "row" }}>
+            <TextInput
+              placeholder="Busque arquivos..."
+              style={{ flex: 1 }}
+              value={searchQuery}
+              onChangeText={(text) => setSearchQuery(text)}
+              left={<TextInput.Icon icon="magnify" />}
+            />
+          </View>
+        </>
       )}
 
-      {files.length > 0 ? (
+      {filteredFiles.length > 0 ? (
         <View style={{ flex: 1, width: "100%" }}>
           <DraggableFlatList
             contentContainerStyle={{ paddingBottom: 80 }}
-            data={files}
+            data={filteredFiles}
             ItemSeparatorComponent={() => <Divider style={{ width: "100%" }} />}
             renderItem={({ item: file, drag, isActive }) => {
               return (

@@ -14,7 +14,6 @@ import * as ImagePicker from "expo-image-picker";
 import { BarCodeScanner } from "expo-barcode-scanner";
 import { useAppTheme } from "../../theme/Theme";
 import { CopyTextComponent } from "./CopyTextComponent";
-import LottieView from "lottie-react-native";
 import * as Haptics from "expo-haptics";
 import { handleVisitSite, isValidURL } from "../../helpers/helperFunctions";
 import { GetPermission } from "../../components/GetPermission";
@@ -67,14 +66,18 @@ export const RecentScans = ({
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ flexDirection: "row", gap: 14 }}
+              contentContainerStyle={{
+                flexDirection: "row",
+                gap: 14,
+                padding: 4,
+              }}
             >
               {recentScans.length > 0
                 ? recentScans.map((scan, index) => (
                     <Card key={index} style={{ width: 160 }}>
                       <Image
                         source={{ uri: scan.imageUri ?? undefined }}
-                        style={{ width: 160, height: 160 }}
+                        style={{ width: 160, height: 160, borderRadius: 8 }}
                       />
 
                       <CopyTextComponent text={scan.content} validateLink />
@@ -244,12 +247,17 @@ export const ReadQRTab = () => {
               overflow: "hidden",
               marginVertical: 14,
               padding: 10,
-              backgroundColor: "white",
             }}
           >
             <Image
               source={{ uri: selectedImage }}
-              style={{ width: 160, height: 160 }}
+              style={{
+                width: 160,
+                height: 160,
+                borderRadius: 8,
+                borderWidth: 2,
+                borderColor: theme.colors.primary,
+              }}
             />
           </View>
         )}

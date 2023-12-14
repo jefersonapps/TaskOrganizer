@@ -27,11 +27,12 @@ export const QRCodeScreen = () => {
           <TabScreen label="Criar QR" icon="qrcode-edit">
             <CreateQRComponent />
           </TabScreen>
-          <TabScreen label="Scanner" icon="qrcode-scan">
-            <ScannerTab />
-          </TabScreen>
+
           <TabScreen label="Ler QR" icon="qrcode">
             <ReadQRTab />
+          </TabScreen>
+          <TabScreen label="Scanner" icon="qrcode-scan">
+            <ScannerTab />
           </TabScreen>
         </Tabs>
       </TabsProvider>
