@@ -60,6 +60,15 @@ export const loadState = <T extends unknown>(key: string): T | undefined => {
 
 const Tab = createBottomTabNavigator();
 
+import { AppRegistry } from "react-native";
+import { registerWidgetTaskHandler } from "react-native-android-widget";
+import { expo as appExpo } from "./app.json";
+const appName = appExpo.name;
+import { widgetTaskHandler } from "./widgets/widget-tarefa-manipulador";
+import { HelloWidgetPreviewScreen } from "./widgets/HelloWidgetPreviewScreen";
+
+registerWidgetTaskHandler(widgetTaskHandler);
+
 function App() {
   const { notificationPermission, requestNotificationPermission } =
     useNotificationPermission();
@@ -480,6 +489,8 @@ function App() {
     </PaperProvider>
   );
 }
+
+AppRegistry.registerComponent(appName, () => App);
 
 export default App;
 export { AppContext };

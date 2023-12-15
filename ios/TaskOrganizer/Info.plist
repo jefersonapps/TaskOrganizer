@@ -57,7 +57,7 @@
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to save photos.</string>
     <key>NSPhotoLibraryUsageDescription</key>
-    <string>The app accesses your photos to let you share them with your friends.</string>
+    <string>Allow $(PRODUCT_NAME) to access your photos.</string>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>

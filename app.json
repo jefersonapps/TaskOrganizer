@@ -63,6 +63,34 @@
           "enableMicrophonePermission": true,
           "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
         }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          
+          "widgets": [
+            {
+              "name": "Hello",
+              "label": "Atividades",
+              "minWidth": "100dp",
+              "minHeight": "40dp",
+              "description": "Total de atividades",
+              "previewImage": "./assets/widget-preview/total-acivities.jpeg",
+              "updatePeriodMillis": 1800000,
+              "resizeMode": "horizontal|vertical"
+            },
+            {
+              "name": "ListDemoWidget",
+              "label": "Atividades com prazo",
+              "minWidth": "100dp",
+              "minHeight": "40dp",
+              "description": "Lista de atividades prazo",
+              "previewImage": "./assets/widget-preview/hello.png",
+              "updatePeriodMillis": 1800000,
+              "resizeMode": "horizontal|vertical"
+            }
+          ]
+        }
       ]
     ],
     "extra": {

@@ -45,8 +45,27 @@ import DraggableFlatList from "react-native-draggable-flatlist";
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
+import { MMKV } from "react-native-mmkv";
+import { requestWidgetUpdate } from "react-native-android-widget";
+import { HelloWidget } from "../../widgets/HelloWidget";
+import { DeliveryTime } from "../../widgets/DeliveryTime";
+import { ListDemoWidget } from "../../widgets/ListDemoWidget";
 
 dayjs.extend(customParseFormat);
+
+// Cria uma nova instância de armazenamento
+export const storage = new MMKV();
+
+// Função para salvar o estado no armazenamento local
+export const saveState = <T extends unknown>(key: string, state: T) => {
+  storage.set(key, JSON.stringify(state));
+};
+
+// Função para recuperar o estado do armazenamento local
+export const loadState = <T extends unknown>(key: string): T | undefined => {
+  const state = storage.getString(key);
+  return state ? (JSON.parse(state) as T) : undefined;
+};
 
 type ActivitiesRoute = RouteProp<RootStackParamList, "EditActivity">;
 type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
@@ -230,6 +249,60 @@ export const ActivitiesScreen = memo(() => {
 
     setFilteredActivities(newFilteredActivities);
   }, [activities, filter]);
+
+  useEffect(() => {
+    // Sua lógica de filtragem e classificação aqui
+    let newFilteredActivities = activities.filter((activity) => {
+      return activity.deliveryDay;
+    });
+
+    // ..
+
+    newFilteredActivities.sort((a, b) => {
+      const dateTimeA = convertToDateTime(a.deliveryDay, a.deliveryTime);
+      const dateTimeB = convertToDateTime(b.deliveryDay, b.deliveryTime);
+      return dateTimeA.isBefore(dateTimeB) ? -1 : 1;
+    });
+
+    // Salve a atividade com o prazo mais curto no armazenamento local
+    if (newFilteredActivities.length > 0) {
+      const nextExpiringActivity = newFilteredActivities;
+
+      saveState("nextExpiringActivity", nextExpiringActivity);
+      requestWidgetUpdate({
+        widgetName: "ListDemoWidget",
+        renderWidget: () => (
+          <ListDemoWidget activitiesUpdate={nextExpiringActivity} />
+        ),
+        widgetNotFound: () => {
+          console.log("not found");
+          // Called if no widget is present on the home screen
+        },
+      });
+    } else {
+      saveState("nextExpiringActivity", []);
+      requestWidgetUpdate({
+        widgetName: "ListDemoWidget",
+        renderWidget: () => <ListDemoWidget activitiesUpdate={[]} />,
+        widgetNotFound: () => {
+          console.log("not found");
+          // Called if no widget is present on the home screen
+        },
+      });
+    }
+  }, [activities]);
+
+  useEffect(() => {
+    console.log("vai fazer update");
+    requestWidgetUpdate({
+      widgetName: "Hello",
+      renderWidget: () => <HelloWidget activitiesUpdate={activities} />,
+      widgetNotFound: () => {
+        console.log("not found");
+        // Called if no widget is present on the home screen
+      },
+    });
+  }, [activities]);
 
   const greeting = useMemo(() => {
     const currentHour = new Date().getHours();
