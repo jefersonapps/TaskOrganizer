@@ -1,77 +1,118 @@
 # TaskOrganizer
 
-This README provides an overview of the React Native project, detailing its structure and functionality. The project consists of three main components: `App`, `ActivitiesScreen`, and `Files`. It uses several third-party libraries, including `@react-navigation`, `react-native-paper`, and `expo`, to create a mobile app for managing activities and files.
+O TaskOrganizer é um aplicativo que ajuda você a organizar suas atividades diárias. Ele possui sete telas principais: Atividades, Agenda, Arquivos, LaTeX, QR, LitLens e Ajustes.
 
-## Project Structure
+## Telas
 
-The project is organized into several files and components. Here's an overview of the key components and their functionality:
+### Atividades
 
-### `App.js`
+Na tela de Atividades, você pode adicionar atividades com ou sem prazo. Se a atividade tiver um prazo, uma notificação será enviada quando a atividade estiver próxima de expirar ou quando tiver expirado. Você também pode filtrar atividades por status (A fazer, Feitas), Prazo e Prioridade.
 
-The `App` component is the entry point of the application and sets up the navigation structure using `@react-navigation`. It also manages the application state using React's `useReducer` and `useState` hooks.
+### Agenda
 
-- **Navigation**: Sets up the bottom tab navigation with three screens: "Atividades," "Arquivos," and "Ajustes."
+Na tela Agenda, você pode adicionar atividades para cada dia da semana.
 
-- **State Management**: Manages activities and files using the `useReducer` hook for activities and `useState` for files. The theme is also managed through `useState`.
+### Arquivos
 
-### `ActivitiesScreen.js`
+Na tela de Arquivos, você pode armazenar seus arquivos importantes e compartilhar vários arquivos de uma só vez.
 
-The `ActivitiesScreen` component displays a list of activities and provides options to edit and delete them. It is designed as a memoized functional component to optimize performance.
+### LaTeX
 
-- **Activity List**: Displays a list of activities obtained from the global state.
+Na tela LaTeX, você pode armazenar equações escritas em LaTeX, visualizá-las e compartilhá-las.
 
-- **Activity Actions**: Allows users to edit and delete activities.
+### QR
 
-- **Dialogs**: Displays confirmation dialogs for deleting activities.
+Na tela QR, você pode criar um código QR totalmente personalizado, podendo colocar uma imagem no centro do código QR, definir a cor principal e a cor de fundo, colocar um gradiente no design do código QR, ler códigos QR de imagens e usar a câmera para escanear códigos QR.
 
-### `Files.js`
+### LitLens
 
-The `Files` component manages a list of files and provides options to add, open, and delete them. It uses various Expo libraries and React Native Paper for file management and UI components.
+Na tela LitLens, utilizando react native vision camera, você pode abrir a câmera e escanear textos obtendo uma leitura em OCR do documento, podendo editar e copiar o que foi escaneado.
 
-- **File List**: Displays a list of files obtained from the global state.
+### Ajustes
 
-- **File Actions**: Allows users to add, open, and delete files.
+Na tela de Ajustes, você pode verificar um relatório das atividades armazenadas e um gráfico da quantidade de atividades em cada dia da Agenda. Além disso, você pode alternar entre o modo noturno e o modo claro ou habilitar a segurança do aplicativo com desbloqueio por digitais ou senha.
 
-- **Dialogs**: Displays confirmation dialogs for deleting files and a warning dialog when opening unsupported file types.
+## Widgets
 
-## Usage
+O TaskOrganizer também possui widgets que fornecem uma visão rápida das suas atividades diretamente na tela inicial do seu dispositivo.
 
-To run the project, follow these steps:
+### All Activities Widget
 
-1. Make sure you have Node.js and npm installed on your system.
+O widget `all-activities-widget` mostra a quantidade total de atividades.
 
-2. Clone the repository and navigate to the project directory.
+!All Activities Widget
 
-3. Install the project dependencies by running:
+### Checked Todos Widget
 
-```bash
-npm install
+O widget `checked-todos-widget` mostra o total de atividades concluídas.
+
+!Checked Todos Widget
+
+### Todos Widget
+
+O widget `todos-widget` mostra as atividades a fazer.
+
+!Todos Widget
+
+### Delivery Datetime Widget
+
+O widget `delivery-datetime-widget` mostra uma lista das atividades com prazo ordenadas em relação ao prazo mais recente.
+
+!Delivery Datetime Widget
+
+## Dependências
+
+O projeto tem as seguintes dependências:
+
+```json
+"dependencies": {
+    "@react-native-community/datetimepicker": "7.2.0",
+    "@react-navigation/bottom-tabs": "^6.5.9",
+    "@react-navigation/native-stack": "^6.9.14",
+    "dayjs": "^1.11.10",
+    "expo": "~49.0.13",
+    "expo-barcode-scanner": "~12.5.3",
+    "expo-clipboard": "~4.3.1",
+    "expo-crypto": "~12.4.1",
+    "expo-document-picker": "~11.5.4",
+    "expo-haptics": "~12.4.0",
+    "expo-image-picker": "~14.3.2",
+    "expo-intent-launcher": "~10.7.0",
+    "expo-linear-gradient": "~12.3.0",
+    "expo-linking": "~5.0.2",
+    "expo-local-authentication": "~13.4.1",
+    "expo-media-library": "~15.4.1",
+    "expo-notifications": "~0.20.1",
+    "expo-sharing": "~11.5.0",
+    "expo-splash-screen": "~0.20.5",
+    "expo-status-bar": "~1.6.0",
+    "expo-system-ui": "~2.4.0",
+    "lottie-react-native": "5.1.6",
+    "react": "18.2.0",
+    "react-native": "^0.72.5",
+    "react-native-android-widget": "^0.9.0",
+    "react-native-draggable-flatlist": "^4.0.1",
+    "react-native-gesture-handler": "~2.12.0",
+    "react-native-mathjax": "^2.1.2",
+    "react-native-mmkv": "^2.11.0",
+    "react-native-pager-view": "^6.2.3",
+    "react-native-paper": "5.1",
+    "react-native-paper-tabs": "^0.10.1",
+    "react-native-qrcode-svg": "^6.2.0",
+    "react-native-reanimated": "~3.5.4",
+    "react-native-safe-area-context": "4.6.3",
+    "react-native-screens": "~3.22.0",
+    "react-native-share": "^10.0.2",
+    "react-native-svg": "13.9.0",
+    "react-native-view-shot": "3.7.0",
+    "react-native-vision-camera": "^2.13.0",
+    "react-native-webview": "^13.6.3",
+    "react-navigation-stack": "^2.10.4",
+    "reanimated-color-picker": "^2.4.1",
+    "vision-camera-ocr": "^1.0.0"
+}
 ```
 
-Start the development server:
+## Como rodar o projeto
 
-```bash
-npm start
-```
-
-You can run the app on an emulator or a physical device using the Expo Go app.
-
-## Dependencies
-
-The project relies on several third-party libraries, including:
-
-- **@react-navigation/bottom-tabs**: Version 6.5.9
-- **@react-navigation/native-stack**: Version 6.9.14
-- **expo**: Version 49.0.13
-- **expo-crypto**: Version 12.4.1
-- **expo-document-picker**: Version 11.5.4
-- **expo-intent-launcher**: Version 10.7.0
-- **expo-status-bar**: Version 1.6.0
-- **expo-system-ui**: Version 2.4.0
-- **react**: Version 18.2.0
-- **react-native**: Version 0.72.5
-- **react-native-paper**: Version 5.1
-- **react-native-safe-area-context**: Version 4.6.3
-- **react-native-screens**: Version 3.22.0
-- **react-navigation-stack**: Version 2.10.4
-- **@react-native-community/datetimepicker**: Version 7.2.0
+Após clonar o repositório e instalar as dependências com npm install, você deve rodar expo prebuild para preparar o projeto para execução.
