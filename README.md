@@ -1,7 +1,10 @@
 # TaskOrganizer
 
 O TaskOrganizer é um aplicativo que ajuda você a organizar suas atividades diárias. Ele possui sete telas principais: Atividades, Agenda, Arquivos, LaTeX, QR, LitLens e Ajustes.
-![TaskOrganizer Icon](https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/adaptive-icon.png)
+
+<p align="center">
+  <img src="https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/adaptive-icon.png" alt="drawing" width="300"/>
+</p>
 
 ## Telas
 
