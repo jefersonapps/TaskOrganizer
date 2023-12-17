@@ -52,7 +52,7 @@ O widget `checked-todos-widget` mostra o total de atividades concluídas.
 
 O widget `todos-widget` mostra as atividades a fazer.
 
-!Todos Widget
+!todos-widget
 
 ### Delivery Datetime Widget
 
