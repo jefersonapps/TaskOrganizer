@@ -3,7 +3,7 @@
 O TaskOrganizer é um aplicativo que ajuda você a organizar suas atividades diárias. Ele possui sete telas principais: Atividades, Agenda, Arquivos, LaTeX, QR, LitLens e Ajustes.
 
 <p align="center">
-  <img src="https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/adaptive-icon.png" alt="drawing" width="300"/>
+  <img src="https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/adaptive-icon.png" alt="TaskOrganizer Icon" width="300"/>
 </p>
 
 ## Telas
@@ -44,25 +44,33 @@ O TaskOrganizer também possui widgets que fornecem uma visão rápida das suas 
 
 O widget `all-activities-widget` mostra a quantidade total de atividades.
 
-![All Activities Widget](https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/widget-preview/all-activities-widget.png)
+<p align="center">
+  <img src="https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/widget-preview/all-activities-widget.png" alt="All Activities Widget" width="200"/>
+</p>
 
 ### Checked Todos Widget
 
 O widget `checked-todos-widget` mostra o total de atividades concluídas.
 
-![Checked Todos Widget](https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/widget-preview/checked-todos-widget.png)
+<p align="center">
+  <img src="https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/widget-preview/checked-todos-widget.png" alt="Checked Todos Widget" width="200"/>
+</p>
 
 ### Todos Widget
 
 O widget `todos-widget` mostra as atividades a fazer.
 
-![Todos Widget](https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/widget-preview/todos-widget.png)
+<p align="center">
+  <img src="https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/widget-preview/todos-widget.png" alt="Todos Widget" width="200"/>
+</p>
 
 ### Delivery Datetime Widget
 
 O widget `delivery-datetime-widget` mostra uma lista das atividades com prazo ordenadas em relação ao prazo mais recente.
 
-![Delivery Datetime Widget](https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/widget-preview/delivery-datetime-widget.png)
+<p align="center">
+  <img src="https://github.com/jefersonapps/TaskOrganizer/raw/main/src/assets/widget-preview/delivery-datetime-widget.png" alt="Delivery Datetime Widget" width="400"/>
+</p>
 
 ## Dependências
 
