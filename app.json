@@ -4,12 +4,12 @@
     "slug": "TaskOrganizer",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./src/assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./src/assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1C1B20"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -26,8 +26,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./src/assets/adaptive-icon.png",
+        "backgroundColor": "#935DF3"
       },
       "permissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -39,7 +39,7 @@
       "package": "com.jefersonapps.TaskOrganizer"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./src/assets/favicon.png"
     },
     "plugins": [
       [
@@ -62,34 +62,6 @@
           "cameraPermissionText": "$(PRODUCT_NAME) needs access to your Camera.",
           "enableMicrophonePermission": true,
           "microphonePermissionText": "$(PRODUCT_NAME) needs access to your Microphone."
-        }
-      ],
-      [
-        "react-native-android-widget",
-        {
-          
-          "widgets": [
-            {
-              "name": "Hello",
-              "label": "Atividades",
-              "minWidth": "100dp",
-              "minHeight": "40dp",
-              "description": "Total de atividades",
-              "previewImage": "./assets/widget-preview/total-acivities.jpeg",
-              "updatePeriodMillis": 1800000,
-              "resizeMode": "horizontal|vertical"
-            },
-            {
-              "name": "ListDemoWidget",
-              "label": "Atividades com prazo",
-              "minWidth": "100dp",
-              "minHeight": "40dp",
-              "description": "Lista de atividades prazo",
-              "previewImage": "./assets/widget-preview/hello.png",
-              "updatePeriodMillis": 1800000,
-              "resizeMode": "horizontal|vertical"
-            }
-          ]
         }
       ]
     ],

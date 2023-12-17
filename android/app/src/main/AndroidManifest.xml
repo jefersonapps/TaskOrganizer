@@ -35,19 +35,33 @@
       </intent-filter>
     </activity>
     <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false"/>
-    <receiver android:name=".widget.Hello" android:exported="false" android:label="Atividades">
+    <receiver android:name=".widget.DeliveryTimeWidget" android:exported="false" android:label="Atividades com prazo">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
         <action android:name="com.jefersonapps.TaskOrganizer.WIDGET_CLICK"/>
       </intent-filter>
-      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widgetprovider_hello"/>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widgetprovider_deliverytimewidget"/>
     </receiver>
-    <receiver android:name=".widget.ListDemoWidget" android:exported="false" android:label="Atividades com prazo">
+    <receiver android:name=".widget.TodoWidget" android:exported="false" android:label="Atividades a fazer">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
         <action android:name="com.jefersonapps.TaskOrganizer.WIDGET_CLICK"/>
       </intent-filter>
-      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widgetprovider_listdemowidget"/>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widgetprovider_todowidget"/>
+    </receiver>
+    <receiver android:name=".widget.AllTodosWidgets" android:exported="false" android:label="Todas as atividades">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+        <action android:name="com.jefersonapps.TaskOrganizer.WIDGET_CLICK"/>
+      </intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widgetprovider_alltodoswidgets"/>
+    </receiver>
+    <receiver android:name=".widget.CheckedTodosWidget" android:exported="false" android:label="Atividades concluídas">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+        <action android:name="com.jefersonapps.TaskOrganizer.WIDGET_CLICK"/>
+      </intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widgetprovider_checkedtodoswidget"/>
     </receiver>
   </application>
 </manifest>

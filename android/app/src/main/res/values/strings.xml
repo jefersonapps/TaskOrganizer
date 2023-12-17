@@ -3,6 +3,8 @@
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
   <string name="expo_system_ui_user_interface_style" translatable="false">light</string>
-  <string name="widget_hello_description" translatable="false">Total de atividades</string>
-  <string name="widget_listdemowidget_description" translatable="false">Lista de atividades com prazo</string>
+  <string name="widget_deliverytimewidget_description" translatable="false">Lista de atividades com prazo</string>
+  <string name="widget_todowidget_description" translatable="false">Total de atividades a fazer</string>
+  <string name="widget_alltodoswidgets_description" translatable="false">Total de atividades</string>
+  <string name="widget_checkedtodoswidget_description" translatable="false">Total de atividades concluídas</string>
 </resources>
