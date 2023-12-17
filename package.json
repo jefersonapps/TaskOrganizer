@@ -21,7 +21,6 @@
     "expo-haptics": "~12.4.0",
     "expo-image-picker": "~14.3.2",
     "expo-intent-launcher": "~10.7.0",
-    "expo-linear-gradient": "~12.3.0",
     "expo-linking": "~5.0.2",
     "expo-local-authentication": "~13.4.1",
     "expo-media-library": "~15.4.1",
