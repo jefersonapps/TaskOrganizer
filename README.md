@@ -126,4 +126,4 @@ O projeto tem as seguintes dependências:
 
 ## Como rodar o projeto
 
-Após clonar o repositório e instalar as dependências com npm install, você deve rodar expo prebuild para preparar o projeto para execução.
+Após clonar o repositório e instalar as dependências com `npm install`, considerando que seu ambiente de desenvolvimento expo já esteja configurado [https://docs.expo.dev/guides/local-app-development/#android](https://docs.expo.dev/guides/local-app-development/#android), você deve rodar `npx expo prebuild` e `npx expo run:android` para preparar o projeto para execução.
