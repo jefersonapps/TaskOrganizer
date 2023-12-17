@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+
+
+
+    android:resizeMode="horizontal|vertical"
+
+    android:description="@string/widget_todowidget_description"
+
+    android:initialLayout="@layout/rn_widget"
+    android:previewImage="@drawable/todowidget_preview"
+
+
+
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen">
+</appwidget-provider>

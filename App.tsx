@@ -1,9 +1,9 @@
 import "react-native-gesture-handler";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { ActivitiesStack } from "./screens/activities-screen/ActivitiesStack";
-import { ConfigStack } from "./screens/config-stack/ConfigStack";
-import Files from "./screens/files-screen/Files";
+import { ActivitiesStack } from "./src/screens/activities-screen/ActivitiesStack";
+import { ConfigStack } from "./src/screens/config-stack/ConfigStack";
+import Files from "./src/screens/files-screen/Files";
 import { Reducer, useReducer, useState } from "react";
 import {
   Action,
@@ -15,34 +15,48 @@ import {
   LatexType,
   Scan,
   SheduleActivityType,
-} from "./contexts/AppContext";
+} from "./src/contexts/AppContext";
 import {
   Button,
   Card,
   Provider as PaperProvider,
   Text,
 } from "react-native-paper";
-import { MyDarkTheme, MyLightTheme, MyTheme } from "./theme/Theme";
+import { MyDarkTheme, MyTheme } from "./src/theme/Theme";
 import { StatusBar } from "expo-status-bar";
 import * as Notify from "expo-notifications";
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
-import { SheduleStack } from "./screens/shedule-screen/SheduleStack";
+import { SheduleStack } from "./src/screens/shedule-screen/SheduleStack";
 
-import { LatexStack } from "./screens/latex-screen/LatexStack";
+import { LatexStack } from "./src/screens/latex-screen/LatexStack";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { QRCodeScreen } from "./screens/qr-code-screen/QRCodeScreen";
+import { QRCodeScreen } from "./src/screens/qr-code-screen/QRCodeScreen";
 import { useEffect } from "react";
 import { MMKV } from "react-native-mmkv";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import { GetPermission } from "./components/GetPermission";
-import { useNotificationPermission } from "./Hooks/usePermission";
-import { LitLensStack } from "./screens/lit-lens/LitLensStack";
+import { GetPermission } from "./src/components/GetPermission";
+
+import { LitLensStack } from "./src/screens/lit-lens/LitLensStack";
 import * as LocalAuthentication from "expo-local-authentication";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import LottieView from "lottie-react-native";
+
+import * as Notifications from "expo-notifications";
+
+import { AppRegistry } from "react-native";
+import {
+  registerWidgetTaskHandler,
+  requestWidgetUpdate,
+} from "react-native-android-widget";
+import { expo as appExpo } from "./app.json";
+const appName = appExpo.name;
+import { widgetTaskHandler } from "./src/widgets/widget-work-manager";
+import { DeliveryTimeWidget } from "./src/widgets/DeliveryTimeWidget";
+import { TodoWidget } from "./src/widgets/TodoWidget";
+import { CheckedTodosWidget } from "./src/widgets/CheckedTodosWidget";
+import { AllTodosWidgets } from "./src/widgets/AllTodosWidgets";
 
 // Cria uma nova instância de armazenamento
 export const storage = new MMKV();
@@ -60,19 +74,9 @@ export const loadState = <T extends unknown>(key: string): T | undefined => {
 
 const Tab = createBottomTabNavigator();
 
-import { AppRegistry } from "react-native";
-import { registerWidgetTaskHandler } from "react-native-android-widget";
-import { expo as appExpo } from "./app.json";
-const appName = appExpo.name;
-import { widgetTaskHandler } from "./widgets/widget-tarefa-manipulador";
-import { HelloWidgetPreviewScreen } from "./widgets/HelloWidgetPreviewScreen";
-
 registerWidgetTaskHandler(widgetTaskHandler);
 
 function App() {
-  const { notificationPermission, requestNotificationPermission } =
-    useNotificationPermission();
-
   const [idOfNotification, setIdOfNotification] = useState(null);
 
   useEffect(() => {
@@ -253,15 +257,41 @@ function App() {
     saveState("userName", userName);
   }, [userName]);
 
-  const [galeryPermission, setGaleryPermission] =
-    useState<ImagePicker.PermissionStatus>();
+  useEffect(() => {
+    requestWidgetUpdate({
+      widgetName: "DeliveryTimeWidget",
+      renderWidget: () => <DeliveryTimeWidget />,
+      widgetNotFound: () => {
+        console.log("not found");
+        // Called if no widget is present on the home screen
+      },
+    });
+    requestWidgetUpdate({
+      widgetName: "TodoWidget",
+      renderWidget: () => <TodoWidget />,
+      widgetNotFound: () => {
+        console.log("not found");
+        // Called if no widget is present on the home screen
+      },
+    });
+    requestWidgetUpdate({
+      widgetName: "CheckedTodosWidget",
+      renderWidget: () => <CheckedTodosWidget />,
+      widgetNotFound: () => {
+        console.log("not found");
+        // Called if no widget is present on the home screen
+      },
+    });
 
-  const [cameraPermission, setCameraPermission] =
-    useState<ImagePicker.PermissionStatus>();
-
-  const toggleTheme = () => {
-    setTheme((theme) => (theme === MyLightTheme ? MyDarkTheme : MyLightTheme));
-  };
+    requestWidgetUpdate({
+      widgetName: "AllTodosWidgets",
+      renderWidget: () => <AllTodosWidgets />,
+      widgetNotFound: () => {
+        console.log("not found");
+        // Called if no widget is present on the home screen
+      },
+    });
+  }, [theme]);
 
   const [imageSource, setImageSource] = useState<string | null>("");
   const [ocrResult, setOcrResult] = useState("");
@@ -296,6 +326,51 @@ function App() {
       handleAuthentication();
     }
   }, [isBiometricEnabled, isAuthenticated]);
+
+  const [notificationPermission, setNotificationPermission] = useState<
+    string | null
+  >(null);
+
+  useEffect(() => {
+    const checkNotificationPermission = async () => {
+      const { status } = await Notifications.getPermissionsAsync();
+      setNotificationPermission(status);
+    };
+
+    checkNotificationPermission();
+  }, [notificationPermission]);
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  const requestNotificationPermission = async () => {
+    const { status } = await Notifications.requestPermissionsAsync({
+      ios: {
+        allowAlert: true,
+        allowBadge: true,
+        allowSound: true,
+        allowAnnouncements: true,
+      },
+    });
+
+    setNotificationPermission(status);
+  };
+
+  if (notificationPermission === "denied") {
+    return (
+      <PaperProvider theme={theme}>
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <GetPermission
+            getPermissionAfterSetInConfigs={requestNotificationPermission}
+            title="Notificações não estão disponíveis"
+            content="Desculpe, parece que não conseguimos enviar notificações para o seu dispositivo. Por favor, verifique as configurações de permissão de notificação e tente novamente."
+          />
+        </ScrollView>
+        <StatusBar style={theme.dark ? "light" : "dark"} translucent />
+      </PaperProvider>
+    );
+  }
 
   if (!isAuthenticated && isBiometricEnabled) {
     return (
@@ -336,7 +411,7 @@ function App() {
                     width: 200,
                     height: 200,
                   }}
-                  source={require("./lottie-files/locked-animation.json")}
+                  source={require("./src/lottie-files/locked-animation.json")}
                 />
               </View>
             </Card.Content>
@@ -347,19 +422,6 @@ function App() {
             </Card.Actions>
           </Card>
         </View>
-        <StatusBar style={theme.dark ? "light" : "dark"} translucent />
-      </PaperProvider>
-    );
-  }
-
-  if (notificationPermission === "denied") {
-    return (
-      <PaperProvider theme={theme}>
-        <GetPermission
-          getPermissionAfterSetInConfigs={requestNotificationPermission}
-          title="Notificações não estão disponíveis"
-          content="Desculpe, parece que não conseguimos enviar notificações para o seu dispositivo. Por favor, verifique as configurações de permissão de notificação e tente novamente."
-        />
         <StatusBar style={theme.dark ? "light" : "dark"} translucent />
       </PaperProvider>
     );
@@ -377,17 +439,13 @@ function App() {
               schedule,
               files,
               setFiles,
-              toggleTheme,
+              setTheme,
               equations,
               dispatchEquations,
               image,
               setImage,
               userName,
               setUserName,
-              galeryPermission,
-              setGaleryPermission,
-              cameraPermission,
-              setCameraPermission,
               imageSource,
               setImageSource,
               ocrResult,
