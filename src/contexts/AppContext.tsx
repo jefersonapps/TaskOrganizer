@@ -28,11 +28,13 @@ export interface ActivityType {
 export interface LatexType {
   id: string;
   code: string;
+  uri: string;
 }
 
 export interface LatexAction {
   id?: string;
   code?: string;
+  uri?: string;
   type: string;
   newOrder?: LatexType[];
 }

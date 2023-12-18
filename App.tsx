@@ -222,13 +222,16 @@ function App() {
           {
             id: Crypto.randomUUID(),
             code: action.code ?? "",
+            uri: action.uri ?? "",
           },
         ];
       case "delete":
         return state.filter((latex) => latex.id !== action.id);
       case "update":
         return state.map((latex) =>
-          latex.id === action.id ? { ...latex, code: action.code ?? "" } : latex
+          latex.id === action.id
+            ? { ...latex, code: action.code ?? "", uri: action.uri ?? "" }
+            : latex
         );
       case "reorder":
         return action.newOrder ?? state;
@@ -375,53 +378,55 @@ function App() {
   if (!isAuthenticated && isBiometricEnabled) {
     return (
       <PaperProvider theme={theme}>
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: theme.colors.surface,
-            padding: 14,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Card style={{ padding: 14 }}>
-            <Card.Content>
-              <Text
-                style={{ fontSize: 20, fontWeight: "bold", marginBottom: 14 }}
-              >
-                Login
-              </Text>
-              <Text style={{ textAlign: "justify" }}>
-                <Text style={{ fontWeight: "bold" }}>
-                  Aplicativo bloqueado!
-                </Text>{" "}
-                O TaskOrganizer está protegendo seus dados, por falor
-                desbloqueie o aplicativo.
-              </Text>
-              <View
-                style={{
-                  width: "100%",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <LottieView
-                  autoPlay
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: theme.colors.surface,
+              padding: 14,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Card style={{ padding: 14 }}>
+              <Card.Content>
+                <Text
+                  style={{ fontSize: 20, fontWeight: "bold", marginBottom: 14 }}
+                >
+                  Login
+                </Text>
+                <Text style={{ textAlign: "justify" }}>
+                  <Text style={{ fontWeight: "bold" }}>
+                    Aplicativo bloqueado!
+                  </Text>{" "}
+                  O TaskOrganizer está protegendo seus dados, por falor
+                  desbloqueie o aplicativo.
+                </Text>
+                <View
                   style={{
-                    width: 200,
-                    height: 200,
+                    width: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
                   }}
-                  source={require("./src/lottie-files/locked-animation.json")}
-                />
-              </View>
-            </Card.Content>
-            <Card.Actions>
-              <Button onPress={handleAuthentication} mode="contained">
-                Desbloquear
-              </Button>
-            </Card.Actions>
-          </Card>
-        </View>
+                >
+                  <LottieView
+                    autoPlay
+                    style={{
+                      width: 200,
+                      height: 200,
+                    }}
+                    source={require("./src/lottie-files/locked-animation.json")}
+                  />
+                </View>
+              </Card.Content>
+              <Card.Actions>
+                <Button onPress={handleAuthentication} mode="contained">
+                  Desbloquear
+                </Button>
+              </Card.Actions>
+            </Card>
+          </View>
+        </ScrollView>
         <StatusBar style={theme.dark ? "light" : "dark"} translucent />
       </PaperProvider>
     );

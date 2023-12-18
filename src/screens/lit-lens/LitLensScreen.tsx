@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { Camera, useCameraDevices } from "react-native-vision-camera";
 import { Button, IconButton, TextInput, Text } from "react-native-paper";
@@ -49,7 +49,9 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
     });
   }, [navigation, ocrResult]);
 
-  const [cameraPermission, setCameraPermission] = useState<string | null>(null);
+  const [cameraPermission, setCameraPermission] = useState<string | null>(
+    "granted"
+  );
 
   useEffect(() => {
     const checkCameraPermission = async () => {
@@ -86,7 +88,7 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
     }, 2000);
   };
 
-  if (cameraPermission === "denied" || !cameraPermission || !device) {
+  if (cameraPermission === "denied" || !cameraPermission) {
     return (
       <GetPermission
         getPermissionAfterSetInConfigs={requestCameraPermission}
@@ -98,66 +100,76 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
     );
   }
 
-  return (
-    <View
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-    >
-      {ocrResult ? (
-        <TextInput
-          theme={{ roundness: 20 }}
-          contentStyle={{ marginHorizontal: 0 }}
-          multiline
-          style={styles.textInput}
-          mode="outlined"
-          label={"Texto identificado"}
-          value={ocrResult}
-          onChangeText={(text) => setOcrResult(text)}
-        />
-      ) : (
-        <View style={styles.centeredView}>
-          <Text style={styles.centeredText}>
-            Bem-vindo ao LitLens! Abra a câmera, tire uma foto e tentaremos
-            identificar o texto para você. Clique em{" "}
-            <Text style={[styles.boldText, { color: theme.colors.primary }]}>
-              Abrir câmera
-            </Text>{" "}
-            para começar.
-          </Text>
-          <LottieView
-            ref={lottieRef}
-            source={require("../../lottie-files/scan-doc.json")}
-            style={{ width: 300 }}
-            autoPlay
-            loop
-          />
-        </View>
-      )}
-
+  if (!device) {
+    return (
       <View
-        style={[
-          styles.buttons,
-          { justifyContent: !ocrResult ? "flex-end" : "space-between" },
-        ]}
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+      ></View>
+    );
+  }
+
+  return (
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <View
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        {ocrResult && (
-          <Button
+        {ocrResult ? (
+          <TextInput
+            theme={{ roundness: 20 }}
+            contentStyle={{ marginHorizontal: 0 }}
+            multiline
+            style={styles.textInput}
             mode="outlined"
-            buttonColor={isCopied ? "#34d399" : undefined}
-            textColor={isCopied ? theme.colors.inverseOnSurface : undefined}
-            onPress={() => copyToClipboard(ocrResult)}
-          >
-            {isCopied ? "Copiado!" : "Copiar texto"}
-          </Button>
+            label={"Texto identificado"}
+            value={ocrResult}
+            onChangeText={(text) => setOcrResult(text)}
+          />
+        ) : (
+          <View style={styles.centeredView}>
+            <Text style={styles.centeredText}>
+              Bem-vindo ao LitLens! Abra a câmera, tire uma foto e tentaremos
+              identificar o texto para você. Clique em{" "}
+              <Text style={[styles.boldText, { color: theme.colors.primary }]}>
+                Abrir câmera
+              </Text>{" "}
+              para começar.
+            </Text>
+            <LottieView
+              ref={lottieRef}
+              source={require("../../lottie-files/scan-doc.json")}
+              style={{ width: 300 }}
+              autoPlay
+              loop
+            />
+          </View>
         )}
 
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate("CameraScreen")}
+        <View
+          style={[
+            styles.buttons,
+            { justifyContent: !ocrResult ? "flex-end" : "space-between" },
+          ]}
         >
-          Abrir câmera
-        </Button>
+          {ocrResult && (
+            <Button
+              mode="outlined"
+              buttonColor={isCopied ? "#34d399" : undefined}
+              textColor={isCopied ? theme.colors.inverseOnSurface : undefined}
+              onPress={() => copyToClipboard(ocrResult)}
+            >
+              {isCopied ? "Copiado!" : "Copiar texto"}
+            </Button>
+          )}
+
+          <Button
+            mode="contained"
+            onPress={() => navigation.navigate("CameraScreen")}
+          >
+            Abrir câmera
+          </Button>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

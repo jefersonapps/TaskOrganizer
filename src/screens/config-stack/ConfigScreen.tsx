@@ -26,6 +26,7 @@ import { UserProfileImage } from "./UserProfileImage";
 import { ConfigItemList } from "./ConfigItemList";
 import { CardWithNumber } from "./CardWithNumber";
 import { MMKV } from "react-native-mmkv";
+import { useIsFocused } from "@react-navigation/native";
 export const storage = new MMKV();
 export const loadState = <T extends unknown>(key: string): T | undefined => {
   const state = storage.getString(key);
@@ -49,25 +50,36 @@ export function ConfigScreen() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedUserName, setEditedUserName] = useState("");
   const [isDarkTheme, setIsDarkTheme] = useState(theme.dark);
+  const [isThemeChanged, setIsThemeChanged] = useState(false);
 
   const toggleThemeOfApp = () => {
     setIsDarkTheme((prev) => !prev);
+    setIsThemeChanged(true);
   };
 
+  const isFocused = useIsFocused();
+
   useEffect(() => {
-    setTheme(isDarkTheme ? MyDarkTheme : MyLightTheme);
-  }, [isDarkTheme]);
+    if (isThemeChanged && !isFocused) {
+      console.log("desativou");
+      setIsThemeChanged(false);
+    }
+  }, [isFocused, isThemeChanged]);
+
+  useEffect(() => {
+    if (isThemeChanged) {
+      console.log("chamou");
+      setTheme(isDarkTheme ? MyDarkTheme : MyLightTheme);
+    }
+  }, [isDarkTheme, isThemeChanged]);
 
   const [imagePickerStatus, requestImagePickerPermission] =
     ImagePicker.useCameraPermissions();
 
-  useEffect(() => {
+  const pickImage = async () => {
     if (!imagePickerStatus?.granted) {
       requestImagePickerPermission();
     }
-  }, [imagePickerStatus, requestImagePickerPermission]);
-
-  const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,

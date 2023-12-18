@@ -1,4 +1,4 @@
-import { ScrollView, View, Dimensions, Pressable } from "react-native";
+import { ScrollView, View, Dimensions, Pressable, Image } from "react-native";
 import { Portal, Dialog, Card, IconButton } from "react-native-paper";
 import { Button } from "react-native-paper";
 import { useRef, useState } from "react";
@@ -45,7 +45,6 @@ export const LatexItem = ({
       quality: 1,
     });
     Sharing.shareAsync(localUri);
-    console.log(localUri);
   };
 
   const isSelected = selectedEquations.some(
@@ -80,24 +79,23 @@ export const LatexItem = ({
         }}
       >
         <Card.Content>
-          <View style={{ height: 250, pointerEvents: "none" }}>
-            <ScrollView
-              showsHorizontalScrollIndicator={false}
-              showsVerticalScrollIndicator={false}
-              style={{
-                flex: 1,
-                paddingHorizontal: 10,
-                paddingVertical: 10,
-                marginTop: 30,
-                marginBottom: 10,
-                borderRadius: 8,
-                backgroundColor: "white",
-              }}
-            >
-              <View>
-                <MathJaxComponent latex={item.code} />
-              </View>
-            </ScrollView>
+          <View
+            style={{
+              height: 250,
+              width: "100%",
+
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 8,
+              backgroundColor: "white",
+            }}
+          >
+            <Image
+              source={{ uri: item.uri }}
+              height={240}
+              style={{ width: "100%" }}
+              resizeMode="cover"
+            />
           </View>
         </Card.Content>
         <Card.Actions>

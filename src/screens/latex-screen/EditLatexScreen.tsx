@@ -2,13 +2,14 @@ import { RouteProp } from "@react-navigation/native";
 import { TextInputComponent } from "../activities-screen/TextInputComponent";
 import { View, ScrollView } from "react-native";
 import { useAppTheme } from "../../theme/Theme";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AppContext } from "../../contexts/AppContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackLatexParamList } from "./LatexStack";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { IconButton } from "react-native-paper";
 import { MathJaxComponent } from "./MathJaxComponent";
+import { captureRef } from "react-native-view-shot";
 
 type SheduleNavigation = NativeStackNavigationProp<
   RootStackLatexParamList,
@@ -24,14 +25,30 @@ export const EditLatexScreen = () => {
 
   const [latex, setLatex] = useState(route.params.latexItem.code);
 
-  const handleEditLatex = () => {
+  const codeRef = useRef(null);
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleEditLatex = async () => {
     if (!latex) return;
+
+    if (!codeRef.current) return;
+
+    setIsLoading(true);
+
+    const localUri = await captureRef(codeRef, {
+      height: 440,
+      quality: 1,
+    });
+
     dispatchEquations({
       type: "update",
       id: route.params.latexItem.id,
       code: latex,
+      uri: localUri,
     });
     navigation.goBack();
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -39,13 +56,13 @@ export const EditLatexScreen = () => {
       headerRight: () => (
         <IconButton
           mode="contained"
-          disabled={!latex.trim()}
+          disabled={!latex.trim() || isLoading}
           icon="send"
           onPress={handleEditLatex}
         ></IconButton>
       ),
     });
-  }, [navigation, latex]);
+  }, [navigation, latex, isLoading]);
 
   return (
     <View
@@ -65,11 +82,10 @@ export const EditLatexScreen = () => {
           marginTop: 30,
           marginBottom: 10,
           borderRadius: 8,
-          elevation: 5,
           backgroundColor: "white",
         }}
       >
-        <View>
+        <View style={{ padding: 2 }} ref={codeRef} collapsable={false}>
           <MathJaxComponent latex={latex} />
         </View>
       </ScrollView>
