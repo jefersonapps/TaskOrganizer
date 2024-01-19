@@ -50,13 +50,13 @@ export interface ActivityState {
   withPriority: ActivityType[];
 }
 
-export type ActionShedule =
+export type ActionSchedule =
   | { type: "add"; day: string; text: string; title: string; priority: string }
   | { type: "delete"; day: string; id: string }
-  | { type: "update"; day: string; activity?: SheduleActivityType }
-  | { type: "reorder"; day: string; activities: SheduleActivityType[] };
+  | { type: "update"; day: string; activity?: ScheduleActivityType }
+  | { type: "reorder"; day: string; activities: ScheduleActivityType[] };
 
-export type SheduleActivityType = {
+export type ScheduleActivityType = {
   id: string;
   text: string;
   title: string;
@@ -90,8 +90,8 @@ export const AppContext = createContext({
     withPriority: [] as ActivityType[],
   },
   activitiesDispatch: (() => {}) as Dispatch<Action>,
-  schedule: {} as Record<string, SheduleActivityType[]>,
-  sheduleDispatch: (() => {}) as Dispatch<ActionShedule>,
+  schedule: {} as Record<string, ScheduleActivityType[]>,
+  scheduleDispatch: (() => {}) as Dispatch<ActionSchedule>,
   equations: [] as LatexType[],
   dispatchEquations: (() => {}) as Dispatch<LatexAction>,
   files: [] as File[],

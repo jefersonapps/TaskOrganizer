@@ -7,12 +7,12 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import { priorityColors } from "../../../constants/constants";
-import { SheduleActivityType } from "../../../contexts/AppContext";
+import { ScheduleActivityType } from "../../../contexts/AppContext";
 import { useAppTheme } from "../../../theme/Theme";
-import { ScheduleMultipleDelete } from "../SheduleScreen";
+import { ScheduleMultipleDelete } from "../ScheduleScreen";
 
-interface SheduleCardProps {
-  item: SheduleActivityType;
+interface ScheduleCardProps {
+  item: ScheduleActivityType;
   handleDelete: (id: string) => void;
   handleEdit: (id: string) => void;
   swipeDirection: string;
@@ -24,7 +24,7 @@ interface SheduleCardProps {
   day: string;
 }
 
-export const SheduleCard = ({
+export const ScheduleCard = ({
   item,
   handleDelete,
   handleEdit,
@@ -35,7 +35,7 @@ export const SheduleCard = ({
   onPress,
   selectedSchedules,
   day,
-}: SheduleCardProps) => {
+}: ScheduleCardProps) => {
   const theme = useAppTheme();
   const positionAnimation = useSharedValue(
     selectedSchedules.length > 0 ? 0 : swipeDirection === "right" ? -1000 : 1000

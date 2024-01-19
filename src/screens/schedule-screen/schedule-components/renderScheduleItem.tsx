@@ -1,9 +1,9 @@
 import * as Haptics from "expo-haptics";
-import { SheduleActivityType } from "../../../contexts/AppContext";
-import { SheduleCard } from "./SheduleCard";
+import { ScheduleActivityType } from "../../../contexts/AppContext";
+import { ScheduleCard } from "./ScheduleCard";
 
 interface RenderItemProps {
-  item: SheduleActivityType;
+  item: ScheduleActivityType;
   drag: () => void;
   isActive: boolean;
   day: string;
@@ -28,7 +28,7 @@ export const renderScheduleItem = ({
   swipeDirection,
 }: RenderItemProps) => {
   return (
-    <SheduleCard
+    <ScheduleCard
       swipeDirection={swipeDirection}
       handleDelete={handleDelete}
       handleEdit={handleUpdate}

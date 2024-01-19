@@ -7,21 +7,21 @@ import { RadioButtonComponent } from "../../components/RadioButtonComponent";
 import { TextInputComponent } from "../../components/TextInputComponent";
 import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
-import { RootStackSheduleParamList } from "./SheduleStack";
+import { RootStackScheduleParamList } from "./ScheduleStack";
 
 type EditRoute = RouteProp<
-  RootStackSheduleParamList,
-  "EditSheduleActivityScreen"
+  RootStackScheduleParamList,
+  "EditScheduleActivityScreen"
 >;
-type EditNavigation = NativeStackNavigationProp<RootStackSheduleParamList>;
+type EditNavigation = NativeStackNavigationProp<RootStackScheduleParamList>;
 
-export const EditSheduleActivityScreen = () => {
+export const EditScheduleActivityScreen = () => {
   const route = useRoute<EditRoute>();
   const navigation = useNavigation<EditNavigation>();
 
   const theme = useAppTheme();
 
-  const { sheduleDispatch } = useContext(AppContext);
+  const { scheduleDispatch } = useContext(AppContext);
 
   // Encontrar a atividade a ser editada no contexto global
   const activity = route.params?.activity;
@@ -39,7 +39,7 @@ export const EditSheduleActivityScreen = () => {
           mode="contained"
           onPress={() => {
             if (activity) {
-              sheduleDispatch({
+              scheduleDispatch({
                 type: "update",
                 day: day,
                 activity: {

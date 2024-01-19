@@ -12,7 +12,7 @@ import {
 } from "react-native-paper";
 import {
   Action,
-  ActionShedule,
+  ActionSchedule,
   ActivityState,
   ActivityType,
   AppContext,
@@ -20,7 +20,7 @@ import {
   LatexAction,
   LatexType,
   Scan,
-  SheduleActivityType,
+  ScheduleActivityType,
 } from "./src/contexts/AppContext";
 import { ActivitiesStack } from "./src/screens/activities-screen/ActivitiesStack";
 import { ConfigStack } from "./src/screens/config-stack/ConfigStack";
@@ -29,7 +29,7 @@ import { MyDarkTheme, MyTheme } from "./src/theme/Theme";
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
-import { SheduleStack } from "./src/screens/shedule-screen/SheduleStack";
+import { ScheduleStack } from "./src/screens/schedule-screen/ScheduleStack";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useEffect } from "react";
@@ -273,15 +273,15 @@ function App() {
 
   const daysOfWeek = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
-  const initialSchedule: Record<string, SheduleActivityType[]> =
+  const initialSchedule: Record<string, ScheduleActivityType[]> =
     daysOfWeek.reduce((acc, day) => {
       acc[day] = [];
       return acc;
-    }, {} as Record<string, SheduleActivityType[]>);
+    }, {} as Record<string, ScheduleActivityType[]>);
 
   const scheduleReducer: Reducer<
-    Record<string, SheduleActivityType[]>,
-    ActionShedule
+    Record<string, ScheduleActivityType[]>,
+    ActionSchedule
   > = (state, action) => {
     switch (action.type) {
       case "add":
@@ -562,7 +562,7 @@ function App() {
             value={{
               activities,
               activitiesDispatch: dispatchActivities,
-              sheduleDispatch: dispatchSchedule,
+              scheduleDispatch: dispatchSchedule,
               schedule,
               files,
               setFiles,
@@ -610,7 +610,7 @@ function App() {
 
               <Tab.Screen
                 name="Agenda"
-                component={SheduleStack}
+                component={ScheduleStack}
                 options={{
                   tabBarIcon: ({ color, size }) => (
                     <Ionicons

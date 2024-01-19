@@ -7,39 +7,39 @@ import { RadioButtonComponent } from "../../components/RadioButtonComponent";
 import { TextInputComponent } from "../../components/TextInputComponent";
 import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
-import { RootStackSheduleParamList } from "./SheduleStack";
+import { RootStackScheduleParamList } from "./ScheduleStack";
 
 type ActivitiesNavigation =
-  NativeStackNavigationProp<RootStackSheduleParamList>;
+  NativeStackNavigationProp<RootStackScheduleParamList>;
 
 type AddRoute = RouteProp<
-  RootStackSheduleParamList,
-  "AddSheduleActivityScreen"
+  RootStackScheduleParamList,
+  "AddScheduleActivityScreen"
 >;
 
-export const AddSheduleActivitieScreen = memo(() => {
+export const AddScheduleActivitieScreen = memo(() => {
   const route = useRoute<AddRoute>();
   const [activityText, setActivityText] = useState("");
   const [activityTitle, setActivityTitle] = useState("");
-  const [sheduleDay, setSheduleDay] = useState("");
+  const [scheduleDay, setScheduleDay] = useState("");
   const [priority, setPriority] = useState("baixa");
 
   useEffect(() => {
     if (route.params) {
-      setSheduleDay(route.params?.day);
+      setScheduleDay(route.params?.day);
     }
   }, [route]);
 
-  const { sheduleDispatch } = useContext(AppContext);
+  const { scheduleDispatch } = useContext(AppContext);
   const navigation = useNavigation<ActivitiesNavigation>();
 
   const handleAdd = () => {
-    if ((!activityText.trim() && !activityTitle.trim()) || !sheduleDay) return;
+    if ((!activityText.trim() && !activityTitle.trim()) || !scheduleDay) return;
     setActivityText("");
 
-    sheduleDispatch({
+    scheduleDispatch({
       type: "add",
-      day: sheduleDay,
+      day: scheduleDay,
       text: activityText,
       title: activityTitle,
       priority: priority,

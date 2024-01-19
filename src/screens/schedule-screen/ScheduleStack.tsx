@@ -1,19 +1,19 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+import { ActivityType, ScheduleActivityType } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
-import { ActivityType, SheduleActivityType } from "../../contexts/AppContext";
-import { ScheduleScreen } from "./SheduleScreen";
-import { EditSheduleActivityScreen } from "./EditSheduleActivityScreen";
-import { AddSheduleActivitieScreen } from "./AddSheduleActitivityScreen";
+import { AddScheduleActivitieScreen } from "./AddScheduleActitivityScreen";
+import { EditScheduleActivityScreen } from "./EditScheduleActivityScreen";
+import { ScheduleScreen } from "./ScheduleScreen";
 
-export type RootStackSheduleParamList = {
-  SheduleScreen: { activity: ActivityType };
-  EditSheduleActivityScreen: { activity: SheduleActivityType; day: string };
-  AddSheduleActivityScreen: { day: string };
+export type RootStackScheduleParamList = {
+  ScheduleScreen: { activity: ActivityType };
+  EditScheduleActivityScreen: { activity: ScheduleActivityType; day: string };
+  AddScheduleActivityScreen: { day: string };
 };
 
 const Stack = createNativeStackNavigator();
-export function SheduleStack() {
+export function ScheduleStack() {
   const theme = useAppTheme();
   return (
     <Stack.Navigator
@@ -23,13 +23,13 @@ export function SheduleStack() {
       }}
     >
       <Stack.Screen
-        name="SheduleScreen"
+        name="ScheduleScreen"
         component={ScheduleScreen}
         options={{ headerShown: false, title: "Agenda" }}
       />
       <Stack.Screen
-        name="EditSheduleActivityScreen"
-        component={EditSheduleActivityScreen}
+        name="EditScheduleActivityScreen"
+        component={EditScheduleActivityScreen}
         options={{
           title: "Editar atividade",
           headerStyle: { backgroundColor: theme.colors.background },
@@ -37,8 +37,8 @@ export function SheduleStack() {
         }}
       />
       <Stack.Screen
-        name="AddSheduleActivityScreen"
-        component={AddSheduleActivitieScreen}
+        name="AddScheduleActivityScreen"
+        component={AddScheduleActivitieScreen}
         options={{
           title: "Adicionar atividade",
           headerStyle: { backgroundColor: theme.colors.background },

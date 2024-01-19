@@ -15,9 +15,9 @@ import { AlertComponent } from "../../components/AlertComponent";
 import { FABComponent } from "../../components/FABComponent";
 import { SelectMultiplesComponent } from "../../components/SelectMultiplesComponent";
 import { daysOfWeek } from "../../constants/constants";
-import { AppContext, SheduleActivityType } from "../../contexts/AppContext";
+import { AppContext, ScheduleActivityType } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
-import { RootStackSheduleParamList } from "./SheduleStack";
+import { RootStackScheduleParamList } from "./ScheduleStack";
 import { NotFoundSchedule } from "./schedule-components/NotFoundSchedule";
 import { ScheduleHeader } from "./schedule-components/ScheduleHeader";
 import { ScheduleSearchBarComponent } from "./schedule-components/ScheduleSearchBarComponent";
@@ -25,7 +25,7 @@ import { SwipeComponent } from "./schedule-components/SwipeComponent";
 import { TopBarComponent } from "./schedule-components/TopBarComponent";
 import { renderScheduleItem } from "./schedule-components/renderScheduleItem";
 
-type SheduleNavigation = NativeStackNavigationProp<RootStackSheduleParamList>;
+type ScheduleNavigation = NativeStackNavigationProp<RootStackScheduleParamList>;
 
 export type ScheduleMultipleDelete = {
   day: string;
@@ -35,8 +35,8 @@ export type ScheduleMultipleDelete = {
 export const ScheduleScreen = () => {
   const theme = useAppTheme();
 
-  const { schedule, sheduleDispatch } = useContext(AppContext);
-  const navigation = useNavigation<SheduleNavigation>();
+  const { schedule, scheduleDispatch } = useContext(AppContext);
+  const navigation = useNavigation<ScheduleNavigation>();
   const [isLottieViewVisible, setLottieViewVisible] = useState(true);
 
   const [activeTab, setActiveTab] = useState(0);
@@ -66,7 +66,7 @@ export const ScheduleScreen = () => {
   );
 
   const addActivity = (day: string) => {
-    navigation.navigate("AddSheduleActivityScreen", { day: day });
+    navigation.navigate("AddScheduleActivityScreen", { day: day });
   };
 
   const handleDelete = useCallback((id: string) => {
@@ -75,7 +75,7 @@ export const ScheduleScreen = () => {
 
   const confirmDelete = useCallback(() => {
     if (activitieToDelete) {
-      sheduleDispatch({
+      scheduleDispatch({
         type: "delete",
         day: daysOfWeek[activeTab],
         id: activitieToDelete,
@@ -96,7 +96,7 @@ export const ScheduleScreen = () => {
       const activity = dayActivities?.find((a) => a.id === id);
 
       if (activity) {
-        navigation.navigate("EditSheduleActivityScreen", { activity, day });
+        navigation.navigate("EditScheduleActivityScreen", { activity, day });
       }
     },
     [activeTab, schedule]
@@ -153,7 +153,7 @@ export const ScheduleScreen = () => {
   const handleDeleteMultiple = useCallback(
     (activities: ScheduleMultipleDelete[]) => {
       activities.forEach((activity) => {
-        sheduleDispatch({
+        scheduleDispatch({
           type: "delete",
           id: activity.id,
           day: activity.day,
@@ -175,8 +175,8 @@ export const ScheduleScreen = () => {
   }, []);
 
   const onDragEnd = useCallback(
-    (data: SheduleActivityType[]) => {
-      sheduleDispatch({
+    (data: ScheduleActivityType[]) => {
+      scheduleDispatch({
         type: "reorder",
         day: daysOfWeek[activeTab],
         activities: data,
@@ -203,13 +203,13 @@ export const ScheduleScreen = () => {
   }, [schedule, activeTab]);
 
   const filterActivitiesByText = useCallback(
-    (activities: SheduleActivityType[], query: string) => {
+    (activities: ScheduleActivityType[], query: string) => {
       if (!query) {
         return activities;
       }
 
       const normalizedQuery = query.toLowerCase();
-      const filterActivityArray = (activityArray: SheduleActivityType[]) =>
+      const filterActivityArray = (activityArray: ScheduleActivityType[]) =>
         activityArray.filter(
           (activity) =>
             activity.text.toLowerCase().includes(normalizedQuery) ||
