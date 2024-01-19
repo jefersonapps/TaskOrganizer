@@ -1,5 +1,5 @@
-import { useContext, useEffect, useRef, useState } from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import {
   Camera,
   CameraPosition,
@@ -7,37 +7,40 @@ import {
   useFrameProcessor,
 } from "react-native-vision-camera";
 
-import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
-import { runOnJS } from "react-native-reanimated";
-import { AppContext } from "../../contexts/AppContext";
-import { scanOCR } from "vision-camera-ocr";
-import { useIsFocused } from "@react-navigation/native";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import {
   PinchGestureHandler,
   PinchGestureHandlerGestureEvent,
   TapGestureHandler,
   TapGestureHandlerGestureEvent,
 } from "react-native-gesture-handler";
+import { runOnJS } from "react-native-reanimated";
+import { scanOCR } from "vision-camera-ocr";
+import { AlertComponent } from "../../components/AlertComponent";
+import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
-import { Button, Dialog, Paragraph, Portal } from "react-native-paper";
 
 export const CameraScreen = () => {
   const camera = useRef<Camera>(null);
   const devices = useCameraDevices();
   const theme = useAppTheme();
+  const navigation = useNavigation();
+  const isFocused = useIsFocused();
+  const isFocusing = useRef(false);
 
   const { setImageSource, imageSource, setOcrResult } = useContext(AppContext);
   const [showCamera, setShowCamera] = useState(true);
   const [cameraPosition, setCameraPosition] = useState<CameraPosition>("back");
-
-  const navigation = useNavigation();
-  const isFocused = useIsFocused();
-
-  const device = cameraPosition === "front" ? devices.front : devices.back;
   const [isflashOn, setIsFlashOn] = useState<"off" | "on">("off");
   const [isFlashAlerVisible, setIsFlashAlertVisible] = useState(false);
+  const [zoom, setZoom] = useState(0);
+  const [focusPoint, setFocusPoint] = useState<{ x: number; y: number } | null>(
+    null
+  );
+
+  const device = cameraPosition === "front" ? devices.front : devices.back;
 
   useEffect(() => {
     if (!isFocused) {
@@ -52,6 +55,7 @@ export const CameraScreen = () => {
     if (camera.current !== null) {
       const photo = await camera.current.takePhoto({});
       setImageSource(photo.path);
+
       navigation.goBack();
     }
   };
@@ -61,27 +65,22 @@ export const CameraScreen = () => {
       "worklet";
       if (imageSource) {
         const data = scanOCR(frame);
-        runOnJS(setOcrResult)(data.result.text);
+        const text = data.result.text
+          ? data.result.text
+          : "Nenhum texto identificado, tente novamente...";
+        runOnJS(setOcrResult)(text);
         runOnJS(setImageSource)(null);
       }
     },
     [imageSource]
   );
 
-  const [zoom, setZoom] = useState(0);
-
-  const pinchHandler = (e: PinchGestureHandlerGestureEvent) => {
+  const pinchHandler = useCallback((e: PinchGestureHandlerGestureEvent) => {
     if (e.nativeEvent.scale !== undefined) {
       setFocusPoint(null);
       setZoom(e.nativeEvent.scale);
     }
-  };
-
-  const [focusPoint, setFocusPoint] = useState<{ x: number; y: number } | null>(
-    null
-  );
-
-  const isFocusing = useRef(false);
+  }, []);
 
   const handleTap = async (event: TapGestureHandlerGestureEvent) => {
     if (camera.current && !isFocusing.current) {
@@ -103,17 +102,17 @@ export const CameraScreen = () => {
     }
   };
 
-  const toggleCamera = () => {
+  const toggleCamera = useCallback(() => {
     setCameraPosition((prevState) => (prevState === "back" ? "front" : "back"));
-  };
+  }, []);
 
-  const toggleFlash = () => {
+  const toggleFlash = useCallback(() => {
     if (device === devices.back) {
       setIsFlashOn((prevFlash) => (prevFlash === "off" ? "on" : "off"));
     } else {
       setIsFlashAlertVisible(true);
     }
-  };
+  }, []);
 
   if (!device) {
     return (
@@ -126,34 +125,15 @@ export const CameraScreen = () => {
     <TapGestureHandler onHandlerStateChange={handleTap}>
       <PinchGestureHandler onGestureEvent={pinchHandler}>
         <View style={{ flex: 1, position: "relative" }}>
-          <View
-            style={{
-              position: "absolute",
-              top: 14,
-              right: 14,
-              zIndex: 1,
-              gap: 8,
-            }}
-          >
-            <Portal>
-              <Dialog
-                visible={!!isFlashAlerVisible}
-                onDismiss={() => setIsFlashAlertVisible(false)}
-              >
-                <Dialog.Title>Flash Indisponível</Dialog.Title>
-                <Dialog.Content>
-                  <Paragraph>
-                    Desculpe, a funcionalidade de flash não está disponível para
-                    a câmera frontal do dispositivo.
-                  </Paragraph>
-                </Dialog.Content>
-                <Dialog.Actions>
-                  <Button onPress={() => setIsFlashAlertVisible(false)}>
-                    Ok
-                  </Button>
-                </Dialog.Actions>
-              </Dialog>
-            </Portal>
+          <View style={styles.container}>
+            <AlertComponent
+              content="Desculpe, a funcionalidade de flash não está disponível para
+            a câmera frontal do dispositivo."
+              title="Flash Indisponível"
+              visible={!!isFlashAlerVisible}
+              confirmText="Entendi"
+              onConfirm={() => setIsFlashAlertVisible(false)}
+            />
 
             <TouchableOpacity onPress={toggleFlash} activeOpacity={0.6}>
               <View
@@ -197,18 +177,16 @@ export const CameraScreen = () => {
             frameProcessor={frameProcessor}
             zoom={zoom}
           />
+
           {focusPoint && (
             <View
-              style={{
-                position: "absolute",
-                left: focusPoint.x - 25,
-                top: focusPoint.y - 25,
-                width: 50,
-                height: 50,
-                borderRadius: 25,
-                borderWidth: 2,
-                borderColor: "white",
-              }}
+              style={[
+                styles.focusPoint,
+                {
+                  left: focusPoint.x - 25,
+                  top: focusPoint.y - 25,
+                },
+              ]}
             />
           )}
           <View style={styles.buttonContainer}>
@@ -224,6 +202,13 @@ export const CameraScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    position: "absolute",
+    top: 14,
+    right: 14,
+    zIndex: 1,
+    gap: 8,
+  },
   buttonContainer: {
     position: "absolute",
     width: "100%",
@@ -238,6 +223,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#B2BEB5",
     alignSelf: "center",
     borderWidth: 4,
+    borderColor: "white",
+  },
+  focusPoint: {
+    position: "absolute",
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
     borderColor: "white",
   },
 });

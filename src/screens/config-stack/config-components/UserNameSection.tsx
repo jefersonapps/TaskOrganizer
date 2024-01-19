@@ -1,7 +1,7 @@
 import { TouchableOpacity, View } from "react-native";
-import { useAppTheme } from "../../theme/Theme";
-import { TextInputComponent } from "../activities-screen/TextInputComponent";
 import { Button, Text } from "react-native-paper";
+import { TextInputComponent } from "../../../components/TextInputComponent";
+import { useAppTheme } from "../../../theme/Theme";
 
 interface UserNameSectionProps {
   userName: string;

@@ -1,14 +1,14 @@
-import { TextInputComponent } from "../activities-screen/TextInputComponent";
-import { ScrollView, View } from "react-native";
-import { useAppTheme } from "../../theme/Theme";
-import { useContext, useEffect, useRef, useState } from "react";
-import { AppContext } from "../../contexts/AppContext";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackLatexParamList } from "./LatexStack";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useContext, useEffect, useRef, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { IconButton } from "react-native-paper";
-import { MathJaxComponent } from "./MathJaxComponent";
 import { captureRef } from "react-native-view-shot";
+import { TextInputComponent } from "../../components/TextInputComponent";
+import { AppContext } from "../../contexts/AppContext";
+import { useAppTheme } from "../../theme/Theme";
+import { RootStackLatexParamList } from "./LatexStack";
+import { MathJaxComponent } from "./MathJaxComponent";
 
 type SheduleNavigation = NativeStackNavigationProp<RootStackLatexParamList>;
 
@@ -59,43 +59,12 @@ export const AddLatexScreen = () => {
 
   return (
     <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.colors.background,
-        paddingHorizontal: 15,
-      }}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      {/* <ScrollView
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        style={{
-          flex: 1,
-          paddingHorizontal: 10,
-          paddingVertical: 10,
-          marginTop: 30,
-          marginBottom: 10,
-          borderRadius: 8,
-          elevation: 5,
-          backgroundColor: "white",
-        }}
-      > */}
-      {/* <View style={{ height: 300, width: 300 }}> */}
-      {/* <MathJaxComponent latex={latex} /> */}
-      {/* </View> */}
-      {/* </ScrollView> */}
-
       <ScrollView
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
-        style={{
-          flex: 1,
-          paddingHorizontal: 10,
-          paddingVertical: 10,
-          marginTop: 30,
-          marginBottom: 10,
-          borderRadius: 8,
-          backgroundColor: "white",
-        }}
+        style={styles.scrollViewContainer}
       >
         <View style={{ padding: 2 }} ref={codeRef} collapsable={false}>
           <MathJaxComponent latex={latex} />
@@ -110,3 +79,19 @@ export const AddLatexScreen = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 15,
+  },
+  scrollViewContainer: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    marginTop: 30,
+    marginBottom: 10,
+    borderRadius: 8,
+    backgroundColor: "white",
+  },
+});

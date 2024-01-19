@@ -1,13 +1,19 @@
-import "react-native-gesture-handler";
-import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { ActivitiesStack } from "./src/screens/activities-screen/ActivitiesStack";
-import { ConfigStack } from "./src/screens/config-stack/ConfigStack";
-import Files from "./src/screens/files-screen/Files";
+import { NavigationContainer } from "@react-navigation/native";
+import * as Notify from "expo-notifications";
+import { StatusBar } from "expo-status-bar";
 import { Reducer, useReducer, useState } from "react";
+import "react-native-gesture-handler";
+import {
+  Button,
+  Card,
+  Provider as PaperProvider,
+  Text,
+} from "react-native-paper";
 import {
   Action,
   ActionShedule,
+  ActivityState,
   ActivityType,
   AppContext,
   File,
@@ -16,32 +22,27 @@ import {
   Scan,
   SheduleActivityType,
 } from "./src/contexts/AppContext";
-import {
-  Button,
-  Card,
-  Provider as PaperProvider,
-  Text,
-} from "react-native-paper";
+import { ActivitiesStack } from "./src/screens/activities-screen/ActivitiesStack";
+import { ConfigStack } from "./src/screens/config-stack/ConfigStack";
+import Files from "./src/screens/files-screen/Files";
 import { MyDarkTheme, MyTheme } from "./src/theme/Theme";
-import { StatusBar } from "expo-status-bar";
-import * as Notify from "expo-notifications";
 
 import { Ionicons } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import { SheduleStack } from "./src/screens/shedule-screen/SheduleStack";
 
-import { LatexStack } from "./src/screens/latex-screen/LatexStack";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { QRCodeScreen } from "./src/screens/qr-code-screen/QRCodeScreen";
-import { useEffect } from "react";
-import { MMKV } from "react-native-mmkv";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { MMKV } from "react-native-mmkv";
 import { GetPermission } from "./src/components/GetPermission";
+import { LatexStack } from "./src/screens/latex-screen/LatexStack";
+import { QRCodeScreen } from "./src/screens/qr-code-screen/QRCodeScreen";
 
-import { LitLensStack } from "./src/screens/lit-lens/LitLensStack";
 import * as LocalAuthentication from "expo-local-authentication";
-import { ScrollView, View } from "react-native";
 import LottieView from "lottie-react-native";
+import { ScrollView, View } from "react-native";
+import { LitLensStack } from "./src/screens/lit-lens/LitLensStack";
 
 import * as Notifications from "expo-notifications";
 
@@ -51,12 +52,14 @@ import {
   requestWidgetUpdate,
 } from "react-native-android-widget";
 import { expo as appExpo } from "./app.json";
-const appName = appExpo.name;
-import { widgetTaskHandler } from "./src/widgets/widget-work-manager";
+import { priorityLevels } from "./src/constants/constants";
+import { convertToDateTime } from "./src/helpers/helperFunctions";
+import { AllTodosWidgets } from "./src/widgets/AllTodosWidgets";
+import { CheckedTodosWidget } from "./src/widgets/CheckedTodosWidget";
 import { DeliveryTimeWidget } from "./src/widgets/DeliveryTimeWidget";
 import { TodoWidget } from "./src/widgets/TodoWidget";
-import { CheckedTodosWidget } from "./src/widgets/CheckedTodosWidget";
-import { AllTodosWidgets } from "./src/widgets/AllTodosWidgets";
+import { widgetTaskHandler } from "./src/widgets/widget-work-manager";
+const appName = appExpo.name;
 
 // Cria uma nova instância de armazenamento
 export const storage = new MMKV();
@@ -95,39 +98,146 @@ function App() {
     });
   }, []);
 
-  const activitiesReducer: Reducer<ActivityType[], Action> = (
-    state,
-    action
-  ) => {
+  const activitiesReducer: Reducer<ActivityState, Action> = (state, action) => {
     switch (action.type) {
       case "add":
-        return [
-          ...state,
-          {
-            id: action.id || Crypto.randomUUID(),
-            text: action.text || "",
-            priority: action.priority || "",
-            timeStamp: action.timeStamp || "",
-            isEdited: action.isEdited || false,
-            deliveryDay: action.deliveryDay || "",
-            deliveryTime: action.deliveryTime || "",
-            title: action.title || "",
-            checked: action.checked || false,
-            notificationId: action.notificationId || null,
-          },
-        ];
+        const newActivity = {
+          id: action.id || Crypto.randomUUID(),
+          text: action.text || "",
+          priority: action.priority || "baixa",
+          timeStamp: action.timeStamp || "",
+          isEdited: action.isEdited || false,
+          deliveryDay: action.deliveryDay || "",
+          deliveryTime: action.deliveryTime || "",
+          title: action.title || "",
+          checked: action.checked || false,
+          notificationId: action.notificationId || null,
+        };
+
+        let newWithDeadLine = state.withDeadLine;
+        if (newActivity.deliveryDay) {
+          newWithDeadLine = [...newWithDeadLine, newActivity];
+          newWithDeadLine.sort((a, b) => {
+            const dateTimeA = convertToDateTime(a.deliveryDay, a.deliveryTime);
+            const dateTimeB = convertToDateTime(b.deliveryDay, b.deliveryTime);
+            return dateTimeA.isBefore(dateTimeB) ? -1 : 1;
+          });
+        }
+
+        let newWithPriority = state.withPriority;
+        if (newActivity.priority) {
+          newWithPriority = [...newWithPriority, newActivity];
+          newWithPriority.sort((a, b) => {
+            return priorityLevels[b.priority] - priorityLevels[a.priority];
+          });
+        }
+
+        return {
+          todos: newActivity.checked
+            ? state.todos
+            : [...state.todos, newActivity],
+          checkedTodos: newActivity.checked
+            ? [...state.checkedTodos, newActivity]
+            : state.checkedTodos,
+          withDeadLine: newWithDeadLine,
+          withPriority: newWithPriority,
+        };
+
       case "delete":
-        return state.filter((activity) => activity.id !== action.id);
+        return {
+          todos: state.todos.filter((activity) => activity.id !== action.id),
+          checkedTodos: state.checkedTodos.filter(
+            (activity) => activity.id !== action.id
+          ),
+          withDeadLine: state.withDeadLine.filter(
+            (activity) => activity.id !== action.id
+          ),
+          withPriority: state.withPriority.filter(
+            (activity) => activity.id !== action.id
+          ),
+        };
       case "update":
-        return state.map((activity) =>
-          activity.id === action.activity?.id ? action.activity : activity
-        );
+        const updateActivity = (activities: ActivityType[]) =>
+          activities.map((activity) =>
+            activity.id === action.activity?.id ? action.activity : activity
+          );
+
+        let updatedWithDeadLine = updateActivity(state.withDeadLine);
+        if (action.activity?.deliveryDay) {
+          updatedWithDeadLine.sort((a, b) => {
+            const dateTimeA = convertToDateTime(a.deliveryDay, a.deliveryTime);
+            const dateTimeB = convertToDateTime(b.deliveryDay, b.deliveryTime);
+            return dateTimeA.isBefore(dateTimeB) ? -1 : 1;
+          });
+        }
+
+        let updatedWithPriority = updateActivity(state.withPriority);
+        if (action.activity?.priority) {
+          updatedWithPriority.sort((a, b) => {
+            return priorityLevels[b.priority] - priorityLevels[a.priority];
+          });
+        }
+
+        return {
+          todos: updateActivity(state.todos),
+          checkedTodos: updateActivity(state.checkedTodos),
+          withDeadLine: updatedWithDeadLine,
+          withPriority: updatedWithPriority,
+        };
+
       case "check":
-        return state.map((activity) =>
-          activity.id === action.id
-            ? { ...activity, checked: !activity.checked }
-            : activity
-        );
+        const activityToCheck =
+          state.todos.find((activity) => activity.id === action.id) ||
+          state.checkedTodos.find((activity) => activity.id === action.id) ||
+          state.withDeadLine.find((activity) => activity.id === action.id) ||
+          state.withPriority.find((activity) => activity.id === action.id);
+
+        if (!activityToCheck) {
+          throw new Error(`Activity with id ${action.id} not found`);
+        }
+
+        const checkedActivity = {
+          ...activityToCheck,
+          checked: !activityToCheck.checked,
+        };
+
+        return {
+          todos: checkedActivity.checked
+            ? state.todos.filter((activity) => activity.id !== action.id)
+            : [...state.todos, checkedActivity],
+          checkedTodos: checkedActivity.checked
+            ? [...state.checkedTodos, checkedActivity]
+            : state.checkedTodos.filter(
+                (activity) => activity.id !== action.id
+              ),
+          withDeadLine:
+            checkedActivity.deliveryDay &&
+            !state.withDeadLine.find((activity) => activity.id === action.id)
+              ? [...state.withDeadLine, checkedActivity]
+              : state.withDeadLine.filter(
+                  (activity) => activity.id !== action.id
+                ),
+          withPriority:
+            checkedActivity.priority &&
+            !state.withPriority.find((activity) => activity.id === action.id)
+              ? [...state.withPriority, checkedActivity]
+              : state.withPriority.filter(
+                  (activity) => activity.id !== action.id
+                ),
+        };
+
+      case "reorder": {
+        if (typeof action.listName !== "string") {
+          throw new Error(
+            `Expected listName to be a string, got ${typeof action.listName}`
+          );
+        }
+        return {
+          ...state,
+          [action.listName]: action.newOrder,
+        };
+      }
+
       default:
         throw new Error();
     }
@@ -135,7 +245,12 @@ function App() {
 
   const [activities, dispatchActivities] = useReducer(
     activitiesReducer,
-    loadState("activities") || []
+    loadState("activities") || {
+      todos: [],
+      checkedTodos: [],
+      withDeadLine: [],
+      withPriority: [],
+    }
   );
 
   useEffect(() => {
@@ -178,6 +293,7 @@ function App() {
               id: Crypto.randomUUID(),
               text: action.text || "",
               title: action.title || "",
+              priority: action.priority || "baixa",
             },
           ],
         };
@@ -391,7 +507,11 @@ function App() {
             <Card style={{ padding: 14 }}>
               <Card.Content>
                 <Text
-                  style={{ fontSize: 20, fontWeight: "bold", marginBottom: 14 }}
+                  style={{
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    marginBottom: 14,
+                  }}
                 >
                   Login
                 </Text>
@@ -434,7 +554,9 @@ function App() {
 
   return (
     <PaperProvider theme={theme}>
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView
+        style={{ flex: 1, backgroundColor: theme.colors.customBackground }}
+      >
         <NavigationContainer>
           <AppContext.Provider
             value={{
@@ -464,10 +586,14 @@ function App() {
           >
             <Tab.Navigator
               screenOptions={{
-                headerStyle: { backgroundColor: theme.colors.customBackground },
+                headerStyle: {
+                  backgroundColor: theme.colors.customBackground,
+                },
                 headerTintColor: theme.colors.primary,
                 tabBarActiveTintColor: theme.colors.primary,
-                tabBarStyle: { backgroundColor: theme.colors.customBackground },
+                tabBarStyle: {
+                  backgroundColor: theme.colors.customBackground,
+                },
                 headerShown: false,
                 tabBarHideOnKeyboard: true,
               }}

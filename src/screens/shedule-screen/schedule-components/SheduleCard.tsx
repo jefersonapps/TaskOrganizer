@@ -1,15 +1,15 @@
-import React, { useEffect, useRef } from "react";
-import {
-  View,
-  StyleSheet,
-  Animated,
-  Pressable,
-  TouchableNativeFeedback,
-} from "react-native";
+import React, { useEffect, useMemo } from "react";
+import { Pressable, TouchableNativeFeedback, View } from "react-native";
 import { IconButton, Card as PaperCard, Text, Title } from "react-native-paper";
-import { useAppTheme } from "../../theme/Theme";
-import { SheduleActivityType } from "../../contexts/AppContext";
-import { ScheduleMultipleDelete } from "./SheduleScreen";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import { priorityColors } from "../../../constants/constants";
+import { SheduleActivityType } from "../../../contexts/AppContext";
+import { useAppTheme } from "../../../theme/Theme";
+import { ScheduleMultipleDelete } from "../SheduleScreen";
 
 interface SheduleCardProps {
   item: SheduleActivityType;
@@ -37,27 +37,24 @@ export const SheduleCard = ({
   day,
 }: SheduleCardProps) => {
   const theme = useAppTheme();
-  const positionAnim = useRef(
-    new Animated.Value(
-      selectedSchedules.length > 0
-        ? 0
-        : swipeDirection === "right"
-        ? -1000
-        : 1000
-    )
-  ).current;
+  const positionAnimation = useSharedValue(
+    selectedSchedules.length > 0 ? 0 : swipeDirection === "right" ? -1000 : 1000
+  );
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: positionAnimation.value }],
+    };
+  });
 
   useEffect(() => {
     if (selectedSchedules.length > 0) return;
-    Animated.timing(positionAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [positionAnim, swipeDirection, selectedSchedules]); // Adicione swipeDirection como dependência
 
-  const isSelected = selectedSchedules.some(
-    (activity) => activity.id === item.id
+    positionAnimation.value = withSpring(0, { damping: 16 });
+  }, [positionAnimation, swipeDirection, selectedSchedules]);
+
+  const isSelected = useMemo(
+    () => selectedSchedules.some((activity) => activity.id === item.id),
+    [selectedSchedules]
   );
 
   return (
@@ -81,20 +78,35 @@ export const SheduleCard = ({
           />
         )}
         <Animated.View
-          style={{
-            ...styles.container,
-            transform: [{ translateX: positionAnim }],
-          }}
+          style={[
+            {
+              margin: 10,
+              flex: 1,
+            },
+            animatedStyle,
+          ]}
         >
           <PaperCard
             style={{
               borderColor: isActive ? theme.colors.inversePrimary : undefined,
               borderWidth: isActive ? 1 : 0,
+              borderLeftWidth: 10,
+              borderLeftColor:
+                priorityColors[item.priority as keyof typeof priorityColors],
+
+              borderTopWidth: theme.dark ? 1 : 0,
+              borderTopColor: theme.dark ? "gray" : undefined,
+              borderBottomWidth: theme.dark ? 1 : 0,
+              borderBottomColor: theme.dark ? "#4d4b4b" : undefined,
+              borderRightWidth: theme.dark ? 1 : 0,
+              borderRightColor: theme.dark ? "#4d4b4b" : undefined,
             }}
           >
             <PaperCard.Content>
-              {item.title && <Title style={styles.bold}>{item.title}</Title>}
-              <Text style={styles.cardText}>{item.text}</Text>
+              {item.title && (
+                <Title style={{ fontWeight: "bold" }}>{item.title}</Title>
+              )}
+              <Text style={{ fontSize: 16 }}>{item.text}</Text>
             </PaperCard.Content>
             <PaperCard.Actions>
               <Pressable onLongPress={onDrag}>
@@ -118,16 +130,3 @@ export const SheduleCard = ({
     </TouchableNativeFeedback>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    margin: 10,
-    flex: 1,
-  },
-  cardText: {
-    fontSize: 16,
-  },
-  bold: {
-    fontWeight: "bold",
-  },
-});

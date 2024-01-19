@@ -1,16 +1,15 @@
-import React, { useEffect } from "react";
-import { View } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useAppTheme } from "../theme/Theme";
+import React, { useEffect, useMemo } from "react";
+import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withDelay,
   withSpring,
 } from "react-native-reanimated";
 import { SpringConfig } from "react-native-reanimated/lib/typescript/reanimated2/animation/springUtils";
+import { useAppTheme } from "../theme/Theme";
 
 interface ProgressBarProps {
   progressPercentage: number;
@@ -35,18 +34,13 @@ export const ProgressBar = ({ progressPercentage }: ProgressBarProps) => {
   });
 
   const theme = useAppTheme();
-  const barColor =
-    progressPercentage == 100 ? "#34d399" : theme.colors.inversePrimary;
+  const barColor = useMemo(
+    () => (progressPercentage == 100 ? "#34d399" : theme.colors.inversePrimary),
+    [progressPercentage]
+  );
 
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <View style={styles.container}>
       <View style={{ marginRight: 8 }}>
         <FontAwesome5 name="check-circle" size={23} color="#22c55e" />
       </View>
@@ -76,3 +70,12 @@ export const ProgressBar = ({ progressPercentage }: ProgressBarProps) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

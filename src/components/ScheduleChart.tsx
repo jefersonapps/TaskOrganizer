@@ -1,21 +1,42 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useIsFocused } from "@react-navigation/native";
+import React, { useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { useAppTheme } from "../theme/Theme";
 import { Chip, Text } from "react-native-paper";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { useIsFocused } from "@react-navigation/native";
+import { useAppTheme } from "../theme/Theme";
 
 type Day = "Dom" | "Seg" | "Ter" | "Qua" | "Qui" | "Sex" | "Sab";
+
 type SheduleActivityType = {
   id: string;
   text: string;
   title: string;
 };
 type Data = Record<Day, SheduleActivityType[]>;
+
+const DEFAULT_DATA: Data = {
+  Dom: [],
+  Seg: [],
+  Ter: [],
+  Qua: [],
+  Qui: [],
+  Sex: [],
+  Sab: [],
+};
+
+const INITIAL_COUNTS: Record<Day, number> = {
+  Dom: 0,
+  Seg: 0,
+  Ter: 0,
+  Qua: 0,
+  Qui: 0,
+  Sex: 0,
+  Sab: 0,
+};
 
 interface Props {
   data: Record<string, SheduleActivityType[]>;
@@ -28,8 +49,12 @@ const Bar: React.FC<{
   number: number;
 }> = ({ height, day, theme, number }) => {
   const heightValue = useSharedValue(0);
-
   const isFocused = useIsFocused();
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      height: heightValue.value,
+    };
+  });
 
   useEffect(() => {
     if (isFocused) {
@@ -38,12 +63,6 @@ const Bar: React.FC<{
       heightValue.value = 0;
     }
   }, [isFocused, height]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      height: heightValue.value,
-    };
-  });
 
   return (
     <View
@@ -71,40 +90,24 @@ const Bar: React.FC<{
 };
 
 export const ScheduleChart: React.FC<Props> = ({ data }) => {
-  const defaultData: Data = {
-    Dom: [],
-    Seg: [],
-    Ter: [],
-    Qua: [],
-    Qui: [],
-    Sex: [],
-    Sab: [],
-  };
-
-  const mergedData = useMemo(() => {
-    return { ...defaultData, ...data };
-  }, [data]);
+  const theme = useAppTheme();
 
   const [activityCounts, setActivityCounts] = useState<Record<string, number>>(
     {}
   );
 
-  const theme = useAppTheme();
-
   const [maxCount, setMaxCount] = useState<number>(0);
 
-  const initialCounts: Record<Day, number> = {
-    Dom: 0,
-    Seg: 0,
-    Ter: 0,
-    Qua: 0,
-    Qui: 0,
-    Sex: 0,
-    Sab: 0,
-  };
+  const mergedData = useMemo(() => {
+    return { ...DEFAULT_DATA, ...data };
+  }, [data]);
+
+  const totalActivities = useMemo(() => {
+    return Object.values(activityCounts).reduce((a, b) => a + b, 0);
+  }, [activityCounts]);
 
   useEffect(() => {
-    const counts = { ...initialCounts };
+    const counts = { ...INITIAL_COUNTS };
     (Object.keys(mergedData) as Day[]).forEach((day) => {
       counts[day] = mergedData[day].length;
     });
@@ -112,10 +115,6 @@ export const ScheduleChart: React.FC<Props> = ({ data }) => {
 
     setMaxCount(Math.max(...Object.values(counts)));
   }, [mergedData]);
-
-  const totalActivities = useMemo(() => {
-    return Object.values(activityCounts).reduce((a, b) => a + b, 0);
-  }, [activityCounts]);
 
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>

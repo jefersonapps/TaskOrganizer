@@ -1,10 +1,10 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { ActivitiesScreen } from "./ActivitiesScreen";
-import { EditActivityScreen } from "./EditActivityScreen";
-import { AddActivitieScreen } from "./AddActivitieScreen";
-import { useAppTheme } from "../../theme/Theme";
 import { ActivityType } from "../../contexts/AppContext";
+import { useAppTheme } from "../../theme/Theme";
+import { ActivitiesScreen } from "./ActivitiesScreen";
+import { AddActivitieScreen } from "./AddActivitieScreen";
+import { EditActivityScreen } from "./EditActivityScreen";
 
 export type RootStackParamList = {
   Activities: { activity: ActivityType };

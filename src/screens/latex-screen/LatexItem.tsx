@@ -1,13 +1,19 @@
-import { ScrollView, View, Dimensions, Pressable, Image } from "react-native";
-import { Portal, Dialog, Card, IconButton } from "react-native-paper";
-import { Button } from "react-native-paper";
-import { useRef, useState } from "react";
-import { LatexType } from "../../contexts/AppContext";
-import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
-import { MathJaxComponent } from "./MathJaxComponent";
-import { SelectedLatexType } from "./LatexScreen";
+import { useMemo, useRef, useState } from "react";
+import {
+  Dimensions,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { Button, Card, Dialog, IconButton, Portal } from "react-native-paper";
+import { captureRef } from "react-native-view-shot";
+import { LatexType } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
+import { SelectedLatexType } from "./LatexScreen";
+import { MathJaxComponent } from "./MathJaxComponent";
 
 interface LatexItemProps {
   item: LatexType;
@@ -47,17 +53,13 @@ export const LatexItem = ({
     Sharing.shareAsync(localUri);
   };
 
-  const isSelected = selectedEquations.some(
-    (someFile) => someFile.id === item.id
+  const isSelected = useMemo(
+    () => selectedEquations.some((someFile) => someFile.id === item.id),
+    [selectedEquations]
   );
 
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-      }}
-    >
+    <View style={styles.container}>
       {selectedEquations.length > 0 && (
         <IconButton
           icon={isSelected ? "check" : "circle-outline"}
@@ -69,27 +71,23 @@ export const LatexItem = ({
         />
       )}
       <Card
-        style={{
-          margin: 10,
-          flex: 1,
-          borderWidth: isActive ? 1 : 0,
-          borderColor: isActive ? theme.colors.primary : theme.colors.surface,
-          backgroundColor: isActive ? theme.colors.surface : undefined,
-          borderRadius: 14,
-        }}
+        style={[
+          styles.cardContainer,
+          {
+            borderWidth: isActive ? 1 : 0,
+            borderColor: isActive ? theme.colors.primary : theme.colors.surface,
+            backgroundColor: theme.colors.surface,
+            borderTopWidth: theme.dark ? 1 : 0,
+            borderTopColor: theme.dark ? "white" : undefined,
+            borderBottomWidth: theme.dark ? 1 : 0,
+            borderBottomColor: theme.dark ? "#4d4b4b" : undefined,
+            borderRightWidth: theme.dark ? 1 : 0,
+            borderRightColor: theme.dark ? "#4d4b4b" : undefined,
+          },
+        ]}
       >
         <Card.Content>
-          <View
-            style={{
-              height: 250,
-              width: "100%",
-
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: 8,
-              backgroundColor: "white",
-            }}
-          >
+          <View style={styles.cardContent}>
             <Image
               source={{ uri: item.uri }}
               height={240}
@@ -121,15 +119,7 @@ export const LatexItem = ({
                 <ScrollView
                   showsHorizontalScrollIndicator={false}
                   showsVerticalScrollIndicator={false}
-                  style={{
-                    flex: 1,
-                    paddingHorizontal: 10,
-                    paddingVertical: 10,
-                    marginTop: 30,
-                    marginBottom: 10,
-                    borderRadius: 8,
-                    backgroundColor: "white",
-                  }}
+                  style={styles.scrollViewContainer}
                 >
                   <View
                     style={{ padding: 2 }}
@@ -151,3 +141,33 @@ export const LatexItem = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  cardContainer: {
+    margin: 10,
+    flex: 1,
+    borderRadius: 14,
+  },
+  cardContent: {
+    height: 250,
+    width: "100%",
+
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    backgroundColor: "white",
+  },
+  scrollViewContainer: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    marginTop: 30,
+    marginBottom: 10,
+    borderRadius: 8,
+    backgroundColor: "white",
+  },
+});

@@ -1,9 +1,9 @@
-import { useState } from "react";
 import * as Clipboard from "expo-clipboard";
-import { Card, IconButton, Text } from "react-native-paper";
+import { useState } from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
-import { handleVisitSite, isValidURL } from "../../helpers/helperFunctions";
-import { useAppTheme } from "../../theme/Theme";
+import { Card, IconButton, Text } from "react-native-paper";
+import { handleVisitSite, isValidURL } from "../../../helpers/helperFunctions";
+import { useAppTheme } from "../../../theme/Theme";
 
 interface CopyTextComponentProps {
   text: string;

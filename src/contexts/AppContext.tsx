@@ -25,6 +25,44 @@ export interface ActivityType {
   notificationId?: NotificationIdType;
 }
 
+export interface Action {
+  id?: string;
+  title?: string;
+  text?: string;
+  activity?: ActivityType;
+  activities?: ActivityType[];
+  priority?: string;
+  timeStamp?: string;
+  isEdited?: boolean;
+  deliveryDay?: string;
+  deliveryTime?: string;
+  checked?: boolean;
+  type: string;
+  notificationId?: NotificationIdType;
+  listName?: string;
+  newOrder?: ActivityType[];
+}
+
+export interface ActivityState {
+  todos: ActivityType[];
+  checkedTodos: ActivityType[];
+  withDeadLine: ActivityType[];
+  withPriority: ActivityType[];
+}
+
+export type ActionShedule =
+  | { type: "add"; day: string; text: string; title: string; priority: string }
+  | { type: "delete"; day: string; id: string }
+  | { type: "update"; day: string; activity?: SheduleActivityType }
+  | { type: "reorder"; day: string; activities: SheduleActivityType[] };
+
+export type SheduleActivityType = {
+  id: string;
+  text: string;
+  title: string;
+  priority: string;
+};
+
 export interface LatexType {
   id: string;
   code: string;
@@ -39,40 +77,18 @@ export interface LatexAction {
   newOrder?: LatexType[];
 }
 
-export interface Action {
-  id?: string;
-  title?: string;
-  text?: string;
-  activity?: ActivityType;
-  priority?: string;
-  timeStamp?: string;
-  isEdited?: boolean;
-  deliveryDay?: string;
-  deliveryTime?: string;
-  checked?: boolean;
-  type: string;
-  notificationId?: NotificationIdType;
-}
-
-export type ActionShedule =
-  | { type: "add"; day: string; text: string; title: string }
-  | { type: "delete"; day: string; id: string }
-  | { type: "update"; day: string; activity?: SheduleActivityType }
-  | { type: "reorder"; day: string; activities: SheduleActivityType[] };
-
-export type SheduleActivityType = {
-  id: string;
-  text: string;
-  title: string;
-};
-
 export type Scan = {
   imageUri: string | null;
   content: string;
 };
 
 export const AppContext = createContext({
-  activities: [] as ActivityType[],
+  activities: {
+    todos: [] as ActivityType[],
+    checkedTodos: [] as ActivityType[],
+    withDeadLine: [] as ActivityType[],
+    withPriority: [] as ActivityType[],
+  },
   activitiesDispatch: (() => {}) as Dispatch<Action>,
   schedule: {} as Record<string, SheduleActivityType[]>,
   sheduleDispatch: (() => {}) as Dispatch<ActionShedule>,

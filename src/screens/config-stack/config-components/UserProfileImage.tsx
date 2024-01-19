@@ -1,6 +1,6 @@
-import { Image, TouchableOpacity, View } from "react-native";
-import { useAppTheme } from "../../theme/Theme";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Image, TouchableOpacity, View } from "react-native";
+import { useAppTheme } from "../../../theme/Theme";
 
 interface UserProfileImageProps {
   image: string | null;

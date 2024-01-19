@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { TouchableOpacity, View } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { TextInput, RadioButton, Text } from "react-native-paper";
+import { useCallback, useEffect, useState } from "react";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import { RadioButton, Text, TextInput } from "react-native-paper";
+import Animated, { ZoomInLeft } from "react-native-reanimated";
 
 interface DateTimePickerComponentProps {
   deliveryTime?: string;
@@ -19,6 +20,7 @@ export const DateTimePickerComponent = ({
 }: DateTimePickerComponentProps) => {
   const [date, setDate] = useState<Date | null>(null);
   const [time, setTime] = useState<Date | null>(null);
+
   const [openStartDatePicker, setOpenStartDatePicker] =
     useState<boolean>(false);
   const [openStartTimePicker, setOpenStartTimePicker] =
@@ -38,14 +40,24 @@ export const DateTimePickerComponent = ({
     }
   }, [deliveryDay, deliveryTime]);
 
-  const onChangeDate = (event: any, selectedDate?: Date) => {
+  const onChangeDate = useCallback((event: any, selectedDate?: Date) => {
+    if (event.type === "dismissed") {
+      setOpenStartDatePicker(false);
+      setDate(null);
+      return;
+    }
     const currentDate = selectedDate || date;
     setOpenStartDatePicker(false);
     setDate(currentDate);
     setDeliveryDay(currentDate?.toLocaleDateString() || "");
-  };
+  }, []);
 
-  const onChangeTime = (event: any, selectedTime?: Date) => {
+  const onChangeTime = useCallback((event: any, selectedTime?: Date) => {
+    if (event.type === "dismissed") {
+      setTime(null);
+      setOpenStartTimePicker(false);
+      return;
+    }
     const currentTime = selectedTime || time;
     setOpenStartTimePicker(false);
     setTime(currentTime);
@@ -57,19 +69,10 @@ export const DateTimePickerComponent = ({
           }) + ":00"
         : ""
     );
-  };
+  }, []);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        flexDirection: "column",
-        justifyContent: "space-evenly",
-        flexWrap: "wrap",
-        gap: 10,
-        paddingBottom: 10,
-      }}
-    >
+    <View style={styles.container}>
       <Text variant="titleMedium">Prazo:</Text>
       <RadioButton.Group
         onValueChange={(newValue) => {
@@ -85,13 +88,13 @@ export const DateTimePickerComponent = ({
         value={value}
       >
         <TouchableWithoutFeedback onPress={() => setValue("Sem prazo")}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={styles.rowCentered}>
             <RadioButton value="Sem prazo" />
             <Text>Sem prazo</Text>
           </View>
         </TouchableWithoutFeedback>
         <TouchableWithoutFeedback onPress={() => setValue("Prazo")}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={styles.rowCentered}>
             <RadioButton value="Prazo" />
             <Text>Definir prazo</Text>
           </View>
@@ -99,21 +102,12 @@ export const DateTimePickerComponent = ({
       </RadioButton.Group>
 
       {value === "Prazo" && (
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            flexDirection: "row",
-            justifyContent: "space-evenly",
-            flexWrap: "wrap",
-            gap: 10,
-          }}
-        >
+        <Animated.View style={styles.dateTimeContainer} entering={ZoomInLeft}>
           <TouchableOpacity
             activeOpacity={0.6}
             onPress={() => setOpenStartDatePicker(true)}
           >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={styles.rowCentered}>
               <TextInput
                 label="Data"
                 value={date?.toLocaleDateString() || "Sem data"}
@@ -135,13 +129,14 @@ export const DateTimePickerComponent = ({
               mode={"date"}
               display="default"
               onChange={onChangeDate}
+              minimumDate={new Date()}
             />
           )}
           <TouchableOpacity
             activeOpacity={0.6}
             onPress={() => setOpenStartTimePicker(true)}
           >
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={styles.rowCentered}>
               <TextInput
                 label="Hora"
                 value={
@@ -163,6 +158,7 @@ export const DateTimePickerComponent = ({
               />
             </View>
           </TouchableOpacity>
+
           {openStartTimePicker && (
             <DateTimePicker
               testID="timePicker"
@@ -172,8 +168,28 @@ export const DateTimePickerComponent = ({
               onChange={onChangeTime}
             />
           )}
-        </View>
+        </Animated.View>
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "space-evenly",
+    flexWrap: "wrap",
+    gap: 10,
+    paddingBottom: 10,
+  },
+  rowCentered: { flexDirection: "row", alignItems: "center" },
+  dateTimeContainer: {
+    flex: 1,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+});

@@ -1,16 +1,17 @@
-import React, { useEffect, useState, useRef, useContext } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
 import * as Clipboard from "expo-clipboard";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
+import { IconButton, Text, TextInput } from "react-native-paper";
 import { Camera, useCameraDevices } from "react-native-vision-camera";
-import { Button, IconButton, TextInput, Text } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
 
 import LottieView from "lottie-react-native";
 
 import { GetPermission } from "../../components/GetPermission";
 
-import { AppContext } from "../../contexts/AppContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { AppContext } from "../../contexts/AppContext";
+import { ActionButtons } from "./lit-lens-components/ActionButtons";
 
 type RootStackParamList = {
   LitLensScreen: undefined;
@@ -25,6 +26,7 @@ type ConfigScreenNavigationProp = NativeStackNavigationProp<
 type NavigationProps = {
   navigation: ConfigScreenNavigationProp;
 };
+const { height } = Dimensions.get("window");
 
 export const LitLensScreen = ({ navigation }: NavigationProps) => {
   const theme = useAppTheme();
@@ -44,6 +46,7 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
           disabled={!ocrResult.trim()}
           icon="broom"
           onPress={() => setOcrResult("")}
+          style={{ marginRight: -8 }}
         ></IconButton>
       ),
     });
@@ -129,9 +132,13 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
             <Text style={styles.centeredText}>
               Bem-vindo ao LitLens! Abra a câmera, tire uma foto e tentaremos
               identificar o texto para você. Clique em{" "}
-              <Text style={[styles.boldText, { color: theme.colors.primary }]}>
+              <Text
+                onPress={() => navigation.navigate("CameraScreen")}
+                style={[styles.boldText, { color: theme.colors.primary }]}
+              >
                 Abrir câmera
-              </Text>{" "}
+              </Text>
+              {"  "}
               para começar.
             </Text>
             <LottieView
@@ -144,30 +151,12 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
           </View>
         )}
 
-        <View
-          style={[
-            styles.buttons,
-            { justifyContent: !ocrResult ? "flex-end" : "space-between" },
-          ]}
-        >
-          {ocrResult && (
-            <Button
-              mode="outlined"
-              buttonColor={isCopied ? "#34d399" : undefined}
-              textColor={isCopied ? theme.colors.inverseOnSurface : undefined}
-              onPress={() => copyToClipboard(ocrResult)}
-            >
-              {isCopied ? "Copiado!" : "Copiar texto"}
-            </Button>
-          )}
-
-          <Button
-            mode="contained"
-            onPress={() => navigation.navigate("CameraScreen")}
-          >
-            Abrir câmera
-          </Button>
-        </View>
+        <ActionButtons
+          onCopy={() => copyToClipboard(ocrResult)}
+          onOpenCamera={() => navigation.navigate("CameraScreen")}
+          isCopied={isCopied}
+          ocrResult={ocrResult}
+        />
       </View>
     </ScrollView>
   );
@@ -179,9 +168,11 @@ const styles = StyleSheet.create({
 
     padding: 14,
     gap: 14,
+    justifyContent: "space-between",
   },
   textInput: {
     flex: 1,
+    maxHeight: height * 0.4,
   },
   centeredView: {
     flex: 1,
@@ -193,9 +184,5 @@ const styles = StyleSheet.create({
   },
   boldText: {
     fontWeight: "bold",
-  },
-  buttons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
   },
 });

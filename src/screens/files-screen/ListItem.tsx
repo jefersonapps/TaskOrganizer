@@ -1,7 +1,8 @@
-import { List, IconButton } from "react-native-paper";
-import { getIconForFile, getColorForFile } from "../../helpers/helperFunctions";
-import { Image, Pressable, View } from "react-native";
+import { useMemo } from "react";
+import { Image, Pressable, StyleSheet, View } from "react-native";
+import { IconButton, List } from "react-native-paper";
 import { File } from "../../contexts/AppContext";
+import { getColorForFile, getIconForFile } from "../../helpers/helperFunctions";
 import { useAppTheme } from "../../theme/Theme";
 import { FilesMultipleDelete } from "./Files";
 
@@ -24,15 +25,13 @@ export const ListItem = ({
 }: ListItemProps) => {
   const theme = useAppTheme();
 
-  const isSelected = selectedFiles.some((someFile) => someFile.id === file.id);
+  const isSelected = useMemo(
+    () => selectedFiles.some((someFile) => someFile.id === file.id),
+    [selectedFiles]
+  );
 
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-      }}
-    >
+    <View style={styles.container}>
       {selectedFiles.length > 0 && (
         <IconButton
           icon={isSelected ? "check" : "circle-outline"}
@@ -60,25 +59,18 @@ export const ListItem = ({
               return (
                 <Image
                   source={{ uri: file.uri }}
-                  style={{
-                    width: 25,
-                    height: 25,
-                    marginLeft: props.style.marginLeft,
-                    marginRight: props.style.marginRight,
-                    alignSelf: "center",
-                    borderRadius: 5,
-                  }}
+                  style={[
+                    styles.image,
+                    {
+                      marginLeft: props.style.marginLeft,
+                      marginRight: props.style.marginRight,
+                    },
+                  ]}
                 />
               );
             } else {
               return (
-                <View
-                  style={{
-                    height: "100%",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
+                <View style={styles.icon}>
                   <List.Icon
                     {...props}
                     icon={getIconForFile(file)}
@@ -89,12 +81,7 @@ export const ListItem = ({
             }
           }}
           right={() => (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-              }}
-            >
+            <View style={styles.dragIcon}>
               <Pressable onLongPress={onDrag}>
                 <IconButton icon="drag" mode="contained" />
               </Pressable>
@@ -110,3 +97,21 @@ export const ListItem = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  image: { width: 25, height: 25, borderRadius: 5, alignSelf: "center" },
+  icon: {
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dragIcon: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: -20,
+  },
+});

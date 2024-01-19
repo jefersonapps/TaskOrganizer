@@ -1,66 +1,26 @@
-import React, { useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import SvgQRCode from "react-native-qrcode-svg";
+import React, { useRef, useState } from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
 import {
   Button,
-  Dialog,
   Divider,
   IconButton,
   List,
-  Portal,
   Switch,
   Text,
 } from "react-native-paper";
-import { TextInputComponent } from "../activities-screen/TextInputComponent";
+import SvgQRCode from "react-native-qrcode-svg";
 import { useAppTheme } from "../../theme/Theme";
 
 import * as MediaLibrary from "expo-media-library";
-import { captureRef } from "react-native-view-shot";
-import { CustomAlert } from "../../components/CustomAlert";
 import * as Sharing from "expo-sharing";
-import ColorPicker, {
-  HueSlider,
-  OpacitySlider,
-  Panel1,
-} from "reanimated-color-picker";
+import { captureRef } from "react-native-view-shot";
 
-import * as ImagePicker from "expo-image-picker";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-
-const PickColor = ({
-  showPickColor,
-  setShowPickColor,
-  setColor,
-  color = "blue",
-}: any) => {
-  return (
-    <Portal>
-      <Dialog
-        visible={!!showPickColor}
-        onDismiss={() => setShowPickColor(false)}
-      >
-        <Dialog.Title>Escolha uma cor</Dialog.Title>
-        <Dialog.Content>
-          <View>
-            <ColorPicker
-              style={{ gap: 14 }}
-              value={color}
-              onComplete={({ hex }) => setColor(hex)}
-            >
-              <Panel1 style={{ height: 160 }} />
-              <HueSlider style={{ height: 50 }} />
-              <OpacitySlider style={{ height: 50 }} />
-            </ColorPicker>
-          </View>
-        </Dialog.Content>
-        <Dialog.Actions>
-          <Button onPress={() => setShowPickColor(null)}>Ok</Button>
-        </Dialog.Actions>
-      </Dialog>
-    </Portal>
-  );
-};
+import * as ImagePicker from "expo-image-picker";
+import { AlertComponent } from "../../components/AlertComponent";
+import { TextInputComponent } from "../../components/TextInputComponent";
+import { PickColor } from "./qr-code-components/PickColor";
 
 export const CreateQRComponent = () => {
   const theme = useAppTheme();
@@ -162,17 +122,18 @@ export const CreateQRComponent = () => {
 
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-      <CustomAlert
+      <AlertComponent
         title="Sucesso!"
         content="Imagem salva na galeria"
-        isVisible={isImageSaved}
-        setIsVisible={setIsImageSaved}
+        visible={isImageSaved}
+        confirmText="Entendi"
+        onConfirm={() => setIsImageSaved(false)}
       />
-      <View style={{ flex: 1, alignItems: "center", paddingVertical: 14 }}>
+      <View style={styles.container}>
         <View
           style={{
-            padding: 14,
             backgroundColor: backgroundColor,
+            padding: 14,
             borderRadius: 10,
           }}
           ref={viewShotRef}
@@ -188,7 +149,7 @@ export const CreateQRComponent = () => {
             linearGradient={[firstColor, secondColor]}
           />
         </View>
-        <View style={{ flexDirection: "row", paddingTop: 14, gap: 14 }}>
+        <View style={styles.buttons}>
           <Button
             mode="contained"
             onPress={handleDownloadQRCode}
@@ -233,14 +194,15 @@ export const CreateQRComponent = () => {
             </Text>
           </Button>
         </View>
-        <View style={{ margin: 15 }}>
-          <View style={{ marginTop: "auto", width: "100%" }}>
-            <TextInputComponent
-              label="Digite um link ou texto..."
-              setText={setInputText}
-              text={inputText}
-            />
-          </View>
+
+        <View
+          style={{ marginTop: "auto", width: "100%", paddingHorizontal: 15 }}
+        >
+          <TextInputComponent
+            label="Digite um link ou texto..."
+            setText={setInputText}
+            text={inputText}
+          />
         </View>
 
         <View style={{ width: "100%" }}>
@@ -529,3 +491,8 @@ export const CreateQRComponent = () => {
     </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1, alignItems: "center", paddingVertical: 14 },
+  buttons: { flexDirection: "row", paddingTop: 14, gap: 14 },
+});

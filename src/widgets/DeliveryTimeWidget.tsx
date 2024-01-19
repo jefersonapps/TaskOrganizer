@@ -6,17 +6,18 @@ import {
   ListWidget,
   TextWidget,
 } from "react-native-android-widget";
-import { ActivityType } from "../contexts/AppContext";
 import { MMKV } from "react-native-mmkv";
+import { ActivityState, ActivityType } from "../contexts/AppContext";
 export const storage = new MMKV();
 
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-dayjs.extend(customParseFormat);
-import utc from "dayjs/plugin/utc"; // Importando o plugin utc
-dayjs.extend(utc);
 import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc"; // Importando o plugin utc
+import { getPriorityWidgetColor } from "../helpers/helperFunctions";
 import { MyDarkTheme, MyTheme } from "../theme/Theme";
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
 
 dayjs.extend(timezone);
 
@@ -31,9 +32,107 @@ export const loadState = <T extends unknown>(key: string): T | undefined => {
   return state ? (JSON.parse(state) as T) : undefined;
 };
 
+interface ListItemProps {
+  item: ActivityType;
+  color: ColorProp;
+  theme: any;
+  status: string;
+}
+const ListItem = ({ item, color, theme, status }: ListItemProps) => {
+  return (
+    <FlexWidget
+      style={{
+        padding: 8,
+        width: "match_parent",
+        height: "wrap_content",
+
+        alignItems: "center",
+        flexDirection: "row",
+        borderLeftColor: color,
+        backgroundColor: theme.dark
+          ? "rgba(73, 69, 79, 1)"
+          : "rgba(255, 251, 254, 1)",
+        borderRadius: 16,
+        borderLeftWidth: 10,
+      }}
+    >
+      <FlexWidget
+        style={{
+          width: "match_parent",
+          flex: 1,
+          alignItems: "center",
+          flexDirection: "row",
+          justifyContent: "space-between",
+          paddingVertical: 4,
+        }}
+      >
+        <FlexWidget
+          style={{
+            flexDirection: "column",
+            height: "wrap_content",
+          }}
+        >
+          {item.title && (
+            <TextWidget
+              text={item.title}
+              style={{
+                fontSize: 18,
+                color: theme.dark
+                  ? "rgba(255, 255, 255, 1)"
+                  : "rgba(49, 48, 51, 1)",
+                fontWeight: "500",
+                fontFamily: "Roboto",
+                marginBottom: 8,
+              }}
+            />
+          )}
+          {item.text && (
+            <TextWidget
+              text={item.text}
+              style={{
+                fontSize: 16,
+                color: theme.dark
+                  ? "rgba(255, 255, 255, 1)"
+                  : "rgba(49, 48, 51, 1)",
+                fontFamily: "Roboto",
+              }}
+            />
+          )}
+
+          {item.deliveryDay && (
+            <TextWidget
+              text={`${status}${item.deliveryDay} ${
+                item.deliveryTime ? "às" : ""
+              } ${item.deliveryTime.slice(0, -3)}`}
+              style={{
+                fontSize: 10,
+                color: theme.dark
+                  ? "rgba(255, 255, 255, 1)"
+                  : "rgba(49, 48, 51, 1)",
+                fontFamily: "Roboto",
+                fontWeight: "bold",
+                marginTop: 8,
+                backgroundColor: color,
+                paddingVertical: 4,
+                paddingHorizontal: 8,
+                borderRadius: 8,
+              }}
+            />
+          )}
+        </FlexWidget>
+      </FlexWidget>
+    </FlexWidget>
+  );
+};
+
 function CollectionData() {
-  const theme: MyTheme = loadState("theme") ?? MyDarkTheme;
-  const activities: ActivityType[] = loadState("nextExpiringActivity") ?? [];
+  const theme: any = loadState("theme") ?? MyDarkTheme;
+  const activities: ActivityState = loadState("activities") ?? {
+    checkedTodos: [],
+    todos: [],
+    withDeadLine: [],
+    withPriority: [],
+  };
 
   return (
     <ListWidget
@@ -42,144 +141,30 @@ function CollectionData() {
         width: "match_parent",
       }}
     >
-      {activities && activities.length > 0 ? (
-        activities.map((item) => {
-          const now = dayjs().utc(true);
-
-          let status;
-          let color: ColorProp;
-
-          const deliveryDateTime = dayjs.utc(
-            `${item.deliveryDay} ${
-              item.deliveryTime ? item.deliveryTime : "00:00:00"
-            }`,
-            "DD/MM/YYYY HH:mm:ss"
-          );
-
-          if (now.isBefore(deliveryDateTime, "day")) {
-            status = "Prazo: ";
-            color = theme.dark
-              ? "rgba(79, 55, 139, 1)"
-              : "rgba(234, 221, 255, 1)";
-          } else if (now.isSame(deliveryDateTime, "day")) {
-            if (now.isBefore(deliveryDateTime, "minute")) {
-              status = "Expira hoje: ";
-              color = theme.dark
-                ? "rgba(99, 59, 72, 1)"
-                : "rgba(249, 222, 220, 1)";
-            } else {
-              status = "Expirada: ";
-              color = theme.dark
-                ? "rgba(140, 29, 24, 1)"
-                : "rgba(255, 216, 228, 1)";
-            }
-          } else {
-            status = "Expirada: ";
-            color = theme.dark
-              ? "rgba(140, 29, 24, 1)"
-              : "rgba(255, 216, 228, 1)";
-          }
+      {activities && activities.withDeadLine.length > 0 ? (
+        activities.withDeadLine.map((item) => {
+          const { color, status } = getPriorityWidgetColor({
+            item: item,
+            theme: theme,
+          });
 
           return (
             <FlexWidget
-              clickAction="OPEN_APP"
               key={item.id}
               style={{
                 width: "match_parent",
-                height: "wrap_content",
               }}
+              clickAction="OPEN_APP"
             >
+              <ListItem
+                color={color}
+                item={item}
+                theme={theme}
+                status={status}
+              />
               <FlexWidget
-                style={{
-                  height: "match_parent",
-                  width: "match_parent",
-                  flex: 1,
-                }}
-              >
-                <FlexWidget
-                  style={{
-                    width: "match_parent",
-                    alignItems: "center",
-                    flexDirection: "row",
-                    marginBottom: 14,
-                    borderLeftColor: color,
-                    backgroundColor: theme.dark
-                      ? "rgba(73, 69, 79, 1)"
-                      : "rgba(255, 251, 254, 1)",
-                    borderRadius: 16,
-                    borderLeftWidth: 10,
-                    padding: 8,
-                  }}
-                  clickAction="OPEN_APP"
-                  //   clickActionData={{
-                  //     uri: `androidwidgetexample://list/list-demo/${i + 1}`,
-                  //   }}
-                >
-                  <FlexWidget
-                    style={{
-                      width: "match_parent",
-
-                      alignItems: "center",
-                      flexDirection: "row",
-                      justifyContent: "space-between",
-                      paddingVertical: 4,
-                      paddingHorizontal: 8,
-                    }}
-                  >
-                    <FlexWidget
-                      style={{
-                        flexDirection: "column",
-                      }}
-                    >
-                      {item.title && (
-                        <TextWidget
-                          text={item.title}
-                          style={{
-                            fontSize: 18,
-                            color: theme.dark
-                              ? "rgba(255, 255, 255, 1)"
-                              : "rgba(49, 48, 51, 1)",
-                            fontWeight: "500",
-                            fontFamily: "Roboto",
-                            marginBottom: 8,
-                          }}
-                        />
-                      )}
-                      <TextWidget
-                        text={item.text}
-                        style={{
-                          fontSize: 16,
-                          color: theme.dark
-                            ? "rgba(255, 255, 255, 1)"
-                            : "rgba(49, 48, 51, 1)",
-                          fontFamily: "Roboto",
-                        }}
-                      />
-
-                      {item.deliveryDay && (
-                        <TextWidget
-                          text={`${status}${item.deliveryDay} ${
-                            item.deliveryTime ? "às" : ""
-                          } ${item.deliveryTime.slice(0, -3)}`}
-                          style={{
-                            fontSize: 10,
-                            color: theme.dark
-                              ? "rgba(255, 255, 255, 1)"
-                              : "rgba(49, 48, 51, 1)",
-                            fontFamily: "Roboto",
-                            fontWeight: "bold",
-                            marginTop: 8,
-                            backgroundColor: color,
-                            paddingVertical: 4,
-                            paddingHorizontal: 8,
-                            borderRadius: 8,
-                          }}
-                        />
-                      )}
-                    </FlexWidget>
-                  </FlexWidget>
-                </FlexWidget>
-              </FlexWidget>
+                style={{ width: "match_parent", paddingVertical: 8 }}
+              />
             </FlexWidget>
           );
         })
@@ -221,36 +206,37 @@ export function DeliveryTimeWidget() {
       style={{
         height: "match_parent",
         width: "match_parent",
+
+        flexDirection: "column",
         backgroundColor: theme.dark
           ? "rgba(28, 27, 31, 1)"
           : "rgba(231, 224, 236, 1)",
-        flexDirection: "column",
-        padding: 18,
+        padding: 16,
         borderRadius: 16,
       }}
     >
-      <FlexWidget
+      <TextWidget
+        text="Prazos"
         style={{
-          flexDirection: "row",
-          justifyContent: "flex-start",
-          alignItems: "center",
-          width: "match_parent",
+          fontSize: 18,
+          fontWeight: "500",
+          color: theme.dark
+            ? "rgba(208, 188, 255, 1)"
+            : "rgba(103, 80, 164, 1)",
           marginBottom: 16,
         }}
-      >
-        <TextWidget
-          text="Prazos"
-          style={{
-            fontSize: 18,
-            fontWeight: "500",
-            color: theme.dark
-              ? "rgba(208, 188, 255, 1)"
-              : "rgba(103, 80, 164, 1)",
-          }}
-        />
-      </FlexWidget>
+      />
 
-      <CollectionData />
+      <FlexWidget
+        style={{
+          width: "match_parent",
+          height: "match_parent",
+          flex: 1,
+          paddingBottom: 16,
+        }}
+      >
+        <CollectionData />
+      </FlexWidget>
     </FlexWidget>
   );
 }

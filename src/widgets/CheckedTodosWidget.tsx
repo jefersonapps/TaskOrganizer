@@ -6,7 +6,7 @@ import {
   TextWidget,
 } from "react-native-android-widget";
 import { MMKV } from "react-native-mmkv";
-import { ActivityType } from "../contexts/AppContext";
+import { ActivityState } from "../contexts/AppContext";
 import { MyDarkTheme, MyTheme } from "../theme/Theme";
 
 export const storage = new MMKV();
@@ -32,9 +32,14 @@ interface WidgetProps {
 
 export function CheckedTodosWidget({ height, width }: WidgetProps) {
   const theme: MyTheme = loadState("theme") ?? MyDarkTheme;
-  const activities: ActivityType[] = loadState("activities") ?? [];
+  const activities: ActivityState = loadState("activities") ?? {
+    checkedTodos: [],
+    todos: [],
+    withDeadLine: [],
+    withPriority: [],
+  };
 
-  const checkedTodos = activities.filter((activity) => {
+  const checkedTodos = activities.checkedTodos.filter((activity) => {
     return activity.checked;
   });
 
@@ -43,8 +48,8 @@ export function CheckedTodosWidget({ height, width }: WidgetProps) {
       style={{
         height: height ? height : "match_parent",
         width: width ? width : "match_parent",
-        // flex: 1,
-        // padding: 8,
+        alignItems: "center",
+        justifyContent: "center",
       }}
       clickAction="OPEN_APP"
     >

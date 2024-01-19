@@ -25,3 +25,21 @@ export const mmlOptions = {
 };
 
 export const daysOfWeek = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+
+type PriorityLevels = {
+  [key: string]: number;
+  alta: number;
+  media: number;
+  baixa: number;
+};
+export const priorityLevels: PriorityLevels = {
+  alta: 3,
+  media: 2,
+  baixa: 1,
+};
+
+export const priorityColors = {
+  alta: "#dc2626",
+  media: "#ea580c",
+  baixa: "#06b6d4",
+};

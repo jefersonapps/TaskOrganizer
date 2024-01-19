@@ -1,9 +1,6 @@
 import { useContext, useEffect, useMemo } from "react";
-import { ScrollView, View } from "react-native";
-import { AppContext } from "../../contexts/AppContext";
-import { MyDarkTheme, MyLightTheme, useAppTheme } from "../../theme/Theme";
+import { ScrollView, StyleSheet, View } from "react-native";
 import {
-  Button,
   Card,
   Divider,
   IconButton,
@@ -11,22 +8,24 @@ import {
   Text,
   TouchableRipple,
 } from "react-native-paper";
+import { AppContext } from "../../contexts/AppContext";
+import { MyDarkTheme, MyLightTheme, useAppTheme } from "../../theme/Theme";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import React, { useState } from "react";
 
-import { ScheduleChart } from "../../components/ScheduleChart";
-import * as LocalAuthentication from "expo-local-authentication";
-import { formatName, handleVisitSite } from "../../helpers/helperFunctions";
-import { CustomAlert } from "../../components/CustomAlert";
-import { UserNameSection } from "./UserNameSection";
-import { UserProfileImage } from "./UserProfileImage";
-import { ConfigItemList } from "./ConfigItemList";
-import { CardWithNumber } from "./CardWithNumber";
-import { MMKV } from "react-native-mmkv";
 import { useIsFocused } from "@react-navigation/native";
+import * as LocalAuthentication from "expo-local-authentication";
+import { MMKV } from "react-native-mmkv";
+import { AlertComponent } from "../../components/AlertComponent";
+import { ScheduleChart } from "../../components/ScheduleChart";
+import { formatName } from "../../helpers/helperFunctions";
+import { About } from "./config-components/About";
+import { CardWithNumber } from "./config-components/CardWithNumber";
+import { ConfigItemList } from "./config-components/ConfigItemList";
+import { UserNameSection } from "./config-components/UserNameSection";
+import { UserProfileImage } from "./config-components/UserProfileImage";
 export const storage = new MMKV();
 export const loadState = <T extends unknown>(key: string): T | undefined => {
   const state = storage.getString(key);
@@ -51,6 +50,14 @@ export function ConfigScreen() {
   const [editedUserName, setEditedUserName] = useState("");
   const [isDarkTheme, setIsDarkTheme] = useState(theme.dark);
   const [isThemeChanged, setIsThemeChanged] = useState(false);
+  const [isCompatibleAlertVisible, setIsCompatibleAlertVisible] =
+    useState(false);
+
+  const [isNoBiometryAlertVisible, setIsNoBiometryAlertVisible] =
+    useState(false);
+
+  const [imagePickerStatus, requestImagePickerPermission] =
+    ImagePicker.useCameraPermissions();
 
   const toggleThemeOfApp = () => {
     setIsDarkTheme((prev) => !prev);
@@ -73,9 +80,6 @@ export function ConfigScreen() {
     }
   }, [isDarkTheme, isThemeChanged]);
 
-  const [imagePickerStatus, requestImagePickerPermission] =
-    ImagePicker.useCameraPermissions();
-
   const pickImage = async () => {
     if (!imagePickerStatus?.granted) {
       requestImagePickerPermission();
@@ -91,24 +95,6 @@ export function ConfigScreen() {
       setImage(result.assets[0].uri);
     }
   };
-
-  const totalActivities = useMemo(() => {
-    return activities.length;
-  }, [activities]);
-
-  const checkedActivitiesSize = useMemo(() => {
-    return activities.filter((activity) => activity.checked).length;
-  }, [activities]);
-
-  const withDeadlineActivitiesSize = useMemo(() => {
-    return activities.filter((activity) => activity.deliveryDay).length;
-  }, [activities]);
-
-  const [isCompatibleAlertVisible, setIsCompatibleAlertVisible] =
-    useState(false);
-
-  const [isNoBiometryAlertVisible, setIsNoBiometryAlertVisible] =
-    useState(false);
 
   const enableBiometrics = async () => {
     const auth = await LocalAuthentication.authenticateAsync({
@@ -155,6 +141,18 @@ export function ConfigScreen() {
     }
   };
 
+  const totalActivities = useMemo(() => {
+    return activities.todos.length + activities.checkedTodos.length;
+  }, [activities]);
+
+  const checkedActivitiesSize = useMemo(() => {
+    return activities.checkedTodos.length;
+  }, [activities]);
+
+  const withDeadlineActivitiesSize = useMemo(() => {
+    return activities.withDeadLine.length;
+  }, [activities]);
+
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View
@@ -166,17 +164,18 @@ export function ConfigScreen() {
           paddingVertical: 14,
         }}
       >
-        <CustomAlert
-          title="Biometria não suportada"
+        <AlertComponent
           content="Biometria não é suportada no seu dispositivo. Você usará sua senha padrão."
-          isVisible={isCompatibleAlertVisible}
-          setIsVisible={() => {
+          title="Biometria não suportada"
+          visible={isCompatibleAlertVisible}
+          confirmText="Entendi"
+          onConfirm={() => {
             enableBiometrics();
             setIsCompatibleAlertVisible(false);
           }}
         />
 
-        <CustomAlert
+        <AlertComponent
           title="Nenhuma biometria encontrada"
           content={
             <Text style={{ textAlign: "justify" }}>
@@ -189,18 +188,14 @@ export function ConfigScreen() {
               utilizar sistemas de segurança.
             </Text>
           }
-          isVisible={isNoBiometryAlertVisible}
-          setIsVisible={setIsNoBiometryAlertVisible}
-          leftButton={
-            <Button
-              onPress={() => {
-                enableBiometrics();
-                setIsNoBiometryAlertVisible(false);
-              }}
-            >
-              Usar senha padrão
-            </Button>
-          }
+          visible={isNoBiometryAlertVisible}
+          confirmText="Usar senha padrão"
+          onConfirm={() => {
+            enableBiometrics();
+            setIsNoBiometryAlertVisible(false);
+          }}
+          dismissText="Cancelar"
+          onDismiss={() => setIsNoBiometryAlertVisible(false)}
         />
 
         <UserProfileImage image={image} onPress={pickImage} />
@@ -223,27 +218,12 @@ export function ConfigScreen() {
         <View style={{ padding: 14, width: "100%" }}>
           <Card style={{ width: "100%" }}>
             <Card.Content>
-              <Text style={{ fontWeight: "bold", fontSize: 20 }}>
-                Relatório de Atividades
-              </Text>
-              <Text
-                style={{
-                  fontWeight: "bold",
-                  fontSize: 14,
-                  textAlign: "justify",
-                }}
-              >
+              <Text style={styles.cardTitle}>Relatório de Atividades</Text>
+              <Text style={styles.cardSubtitle}>
                 Confira a quantidade total de atividades em cada modalidade
               </Text>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  width: "100%",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+              <View style={styles.carouselContainer}>
                 <View>
                   <ScrollView
                     horizontal
@@ -276,28 +256,12 @@ export function ConfigScreen() {
         <View style={{ padding: 14, width: "100%" }}>
           <Card style={{ width: "100%" }}>
             <Card.Content>
-              <Text style={{ fontWeight: "bold", fontSize: 20 }}>
-                Relatório da agenda
-              </Text>
-              <Text
-                style={{
-                  fontWeight: "bold",
-                  fontSize: 14,
-                  textAlign: "justify",
-                }}
-              >
+              <Text style={styles.cardTitle}>Relatório da agenda</Text>
+              <Text style={styles.cardSubtitle}>
                 Confira a quantidade total de atividades em cada dia
               </Text>
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  width: "100%",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginTop: 14,
-                }}
-              >
+              <View style={styles.chartContainer}>
                 <View>
                   <ScheduleChart data={schedule} />
                 </View>
@@ -312,13 +276,7 @@ export function ConfigScreen() {
             title={"Modo noturno"}
             description={"Ativar/Desativar"}
             leftElement={(props) => (
-              <View
-                style={{
-                  paddingLeft: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+              <View style={styles.icon}>
                 <MaterialCommunityIcons
                   name="theme-light-dark"
                   size={30}
@@ -327,13 +285,7 @@ export function ConfigScreen() {
               </View>
             )}
             rightElement={(props) => (
-              <View
-                style={{
-                  paddingLeft: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+              <View style={styles.icon}>
                 <Switch
                   value={isDarkTheme}
                   onValueChange={toggleThemeOfApp}
@@ -354,13 +306,7 @@ export function ConfigScreen() {
             title={"Habilitar Segurança"}
             description={"Ativar/Desativar desbloqueio do app"}
             leftElement={(props) => (
-              <View
-                style={{
-                  paddingLeft: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+              <View style={styles.icon}>
                 <MaterialCommunityIcons
                   name="fingerprint"
                   size={30}
@@ -369,13 +315,7 @@ export function ConfigScreen() {
               </View>
             )}
             rightElement={(props) => (
-              <View
-                style={{
-                  paddingLeft: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+              <View style={styles.icon}>
                 <Switch
                   value={isBiometricEnabled}
                   onValueChange={toggleBiometricSecurity}
@@ -393,38 +333,43 @@ export function ConfigScreen() {
           <ConfigItemList
             title={"Dica"}
             description={"Insira widgets do TaskOrganizer na sua tela inicial."}
-            leftElement={(props) => (
-              <View
-                style={{
-                  paddingLeft: 10,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
+            leftElement={() => (
+              <View style={styles.icon}>
                 <IconButton icon="tooltip" />
               </View>
             )}
           />
         </View>
 
-        <View
-          style={{
-            flexDirection: "column",
-            width: "100%",
-            alignItems: "center",
-            justifyContent: "center",
-            paddingTop: 14,
-          }}
-        >
-          <Text>from</Text>
-          <TouchableOpacity
-            activeOpacity={0.6}
-            onPress={() => handleVisitSite("https://github.com/jefersonapps")}
-          >
-            <Text style={{ color: theme.colors.primary }}>Jeferson Leite</Text>
-          </TouchableOpacity>
-        </View>
+        <About />
       </View>
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  cardTitle: { fontWeight: "bold", fontSize: 20 },
+  cardSubtitle: {
+    fontWeight: "bold",
+    fontSize: 14,
+    textAlign: "justify",
+  },
+  carouselContainer: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  chartContainer: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 14,
+  },
+  icon: {
+    paddingLeft: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

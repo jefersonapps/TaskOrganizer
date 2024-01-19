@@ -1,14 +1,13 @@
-import { memo, useState, useContext, useEffect } from "react";
-import { ScrollView } from "react-native";
-import { useAppTheme } from "../../theme/Theme";
-import { IconButton, Text } from "react-native-paper";
-import { AppContext } from "../../contexts/AppContext";
-import { useNavigation } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { memo, useContext, useEffect, useState } from "react";
+import { ScrollView, View } from "react-native";
+import { IconButton, RadioButton, Text } from "react-native-paper";
+import { RadioButtonComponent } from "../../components/RadioButtonComponent";
+import { TextInputComponent } from "../../components/TextInputComponent";
+import { AppContext } from "../../contexts/AppContext";
+import { useAppTheme } from "../../theme/Theme";
 import { RootStackSheduleParamList } from "./SheduleStack";
-import { TextInputComponent } from "../activities-screen/TextInputComponent";
-import { RouteProp } from "@react-navigation/native";
-import { useRoute } from "@react-navigation/native";
 
 type ActivitiesNavigation =
   NativeStackNavigationProp<RootStackSheduleParamList>;
@@ -23,6 +22,7 @@ export const AddSheduleActivitieScreen = memo(() => {
   const [activityText, setActivityText] = useState("");
   const [activityTitle, setActivityTitle] = useState("");
   const [sheduleDay, setSheduleDay] = useState("");
+  const [priority, setPriority] = useState("baixa");
 
   useEffect(() => {
     if (route.params) {
@@ -34,7 +34,7 @@ export const AddSheduleActivitieScreen = memo(() => {
   const navigation = useNavigation<ActivitiesNavigation>();
 
   const handleAdd = () => {
-    if (!activityText || !sheduleDay) return;
+    if ((!activityText.trim() && !activityTitle.trim()) || !sheduleDay) return;
     setActivityText("");
 
     sheduleDispatch({
@@ -42,6 +42,7 @@ export const AddSheduleActivitieScreen = memo(() => {
       day: sheduleDay,
       text: activityText,
       title: activityTitle,
+      priority: priority,
     });
     navigation.goBack();
   };
@@ -53,20 +54,20 @@ export const AddSheduleActivitieScreen = memo(() => {
       headerRight: () => (
         <IconButton
           mode="contained"
-          disabled={!activityText.trim()}
+          disabled={!activityText.trim() && !activityTitle.trim()}
           icon="send"
           onPress={handleAdd}
         ></IconButton>
       ),
     });
-  }, [navigation, activityText, activityTitle]);
+  }, [navigation, activityText, activityTitle, priority]);
 
   return (
     <ScrollView
       style={{
         flex: 1,
-        backgroundColor: theme.colors.background,
         paddingHorizontal: 15,
+        backgroundColor: theme.colors.background,
       }}
     >
       <Text variant="titleMedium">Atividade:</Text>
@@ -81,6 +82,36 @@ export const AddSheduleActivitieScreen = memo(() => {
         setText={setActivityText}
         label="Digite o conteúdo"
       />
+      <Text variant="titleMedium">Prioridade:</Text>
+      <RadioButton.Group
+        onValueChange={(newValue) => setPriority(newValue)}
+        value={priority}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+
+            justifyContent: "center",
+          }}
+        >
+          <RadioButtonComponent
+            setPriority={setPriority}
+            label="Alta"
+            value="alta"
+          />
+          <RadioButtonComponent
+            setPriority={setPriority}
+            label="Média"
+            value="media"
+          />
+          <RadioButtonComponent
+            setPriority={setPriority}
+            label="Baixa"
+            value="baixa"
+          />
+        </View>
+      </RadioButton.Group>
     </ScrollView>
   );
 });

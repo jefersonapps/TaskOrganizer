@@ -1,26 +1,27 @@
 import React, { useCallback, useContext, useState } from "react";
-import { View, StatusBar, TouchableNativeFeedback } from "react-native";
 import {
-  Button,
-  Dialog,
-  Divider,
-  FAB,
-  Paragraph,
-  Portal,
-  Text,
-} from "react-native-paper";
+  StatusBar,
+  StyleSheet,
+  TouchableNativeFeedback,
+  View,
+} from "react-native";
+import { Divider, FAB } from "react-native-paper";
 
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackLatexParamList } from "./LatexStack";
 
+import DraggableFlatList from "react-native-draggable-flatlist";
 import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
 import { LatexItem } from "./LatexItem";
-import LottieView from "lottie-react-native";
-import DraggableFlatList from "react-native-draggable-flatlist";
 
 import * as Haptics from "expo-haptics";
+import { AlertComponent } from "../../components/AlertComponent";
+import { FABComponent } from "../../components/FABComponent";
+import { SelectMultiplesComponent } from "../../components/SelectMultiplesComponent";
+import { LatexHeader } from "./latex-components/LatexHeader";
+import { NotFoundLatex } from "./latex-components/NotFoundLatex";
 
 type SheduleNavigation = NativeStackNavigationProp<RootStackLatexParamList>;
 
@@ -33,19 +34,21 @@ export const LatexScreen = () => {
   const { equations, dispatchEquations } = useContext(AppContext);
   const [equationToDelete, setEquationToDelete] = useState<string | null>(null);
 
+  const [selectedEquations, setSelectedEquations] = useState<
+    SelectedLatexType[]
+  >([]);
+  const [confirmDeleteMultiples, setConfirmDeleteMultiples] = useState(false);
+
   const navigation = useNavigation<SheduleNavigation>();
 
-  const handleAddLatex = () => {
+  const handleAddLatex = useCallback(() => {
     navigation.navigate("AddLatexActivityScreen");
-  };
+    setSelectedEquations([]);
+  }, []);
 
   const handleDeleteEquation = useCallback((id: string) => {
     setEquationToDelete(id);
   }, []);
-
-  const [selectedEquations, setSelectedEquations] = useState<
-    SelectedLatexType[]
-  >([]);
 
   const confirmDelete = useCallback(() => {
     if (equationToDelete) {
@@ -93,7 +96,6 @@ export const LatexScreen = () => {
     });
     setSelectedEquations([]);
   }, []);
-  const [confirmDeleteMultiples, setConfirmDeleteMultiples] = useState(false);
 
   const deleteselectedEquations = useCallback(() => {
     handleDeleteMultiple(selectedEquations);
@@ -120,97 +122,40 @@ export const LatexScreen = () => {
         backgroundColor: theme.colors.background,
       }}
     >
-      <Portal>
-        <Dialog
-          visible={!!equationToDelete}
-          onDismiss={() => setEquationToDelete(null)}
-        >
-          <Dialog.Title>Remover Equação</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>Tem certeza que quer remover esta equação?</Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setEquationToDelete(null)}>Cancelar</Button>
-            <Button onPress={confirmDelete}>Ok</Button>
-          </Dialog.Actions>
-        </Dialog>
-        <Dialog
-          visible={!!confirmDeleteMultiples}
-          onDismiss={() => setConfirmDeleteMultiples(false)}
-        >
-          <Dialog.Title>Remover Equações</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>
-              Tem certeza que quer remover as {selectedEquations.length}{" "}
-              equações selecionadas?
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setConfirmDeleteMultiples(false)}>
-              Cancelar
-            </Button>
-            <Button onPress={deleteselectedEquations}>Sim</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      <AlertComponent
+        title="Remover Equação"
+        content="Tem certeza que quer remover esta equação?"
+        visible={!!equationToDelete}
+        confirmText="Remover"
+        onConfirm={confirmDelete}
+        dismissText="Cancelar"
+        onDismiss={() => setEquationToDelete(null)}
+      />
+
+      <AlertComponent
+        title="Remover Equações"
+        content={
+          selectedEquations.length > 1
+            ? `Tem certeza que quer remover as ${selectedEquations.length} equações selecionadas?`
+            : "Tem certeza que quer remover a equação selecionada?"
+        }
+        visible={!!confirmDeleteMultiples}
+        confirmText="Remover"
+        onConfirm={deleteselectedEquations}
+        dismissText="Cancelar"
+        onDismiss={() => setConfirmDeleteMultiples(false)}
+      />
 
       {selectedEquations.length > 0 ? (
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: StatusBar.currentHeight,
-            paddingVertical: 6,
-            paddingHorizontal: 14,
-          }}
-        >
-          <Button
-            style={{ marginRight: 14 }}
-            icon={
-              selectedEquations.length === equations.length
-                ? "circle"
-                : "circle-outline"
-            }
-            mode="outlined"
-            onPress={selectAllEquations}
-          >
-            Todas
-          </Button>
-
-          <Button
-            mode="contained"
-            onPress={handleConfirmDeleteMultiples}
-            icon="delete"
-          >
-            {selectedEquations.length}
-          </Button>
-        </View>
+        <SelectMultiplesComponent
+          allSelected={selectedEquations.length === equations.length}
+          handleConfirmDeleteMultiples={handleConfirmDeleteMultiples}
+          selectAllItems={selectAllEquations}
+          selectedItems={selectedEquations}
+          style={{ paddingTop: StatusBar.currentHeight, marginVertical: 4 }}
+        />
       ) : (
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            paddingTop: StatusBar.currentHeight ?? 18 + 12,
-            paddingBottom: 12,
-            paddingHorizontal: 14,
-            backgroundColor: theme.colors.customBackground,
-            borderBottomWidth: 2,
-            borderBottomColor: theme.colors.surfaceDisabled,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: theme.colors.primary,
-              paddingVertical: 4,
-            }}
-          >
-            Equações
-          </Text>
-        </View>
+        <LatexHeader />
       )}
 
       {equations.length > 0 ? (
@@ -261,41 +206,43 @@ export const LatexScreen = () => {
         <View
           style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
         >
-          <LottieView
-            autoPlay
-            style={{
-              width: 160,
-              height: 160,
-            }}
-            source={require("../../lottie-files/maths.json")}
-          />
+          <NotFoundLatex />
         </View>
       )}
       {selectedEquations.length > 0 && (
         <FAB
-          style={{
-            position: "absolute",
-            margin: 16,
-            left: 0,
-            bottom: 0,
-            zIndex: 999,
-            backgroundColor: theme.colors.surfaceVariant,
-          }}
+          style={[
+            styles.cancelFab,
+            {
+              backgroundColor: theme.colors.surfaceVariant,
+            },
+          ]}
           icon="window-close"
           onPress={() => setSelectedEquations([])}
         />
       )}
-      <FAB
-        style={{
-          position: "absolute",
-          margin: 16,
-          right: 0,
-          bottom: 0,
-          zIndex: 999,
-        }}
+      <FABComponent
+        style={styles.addFab}
         icon="plus"
-        onPress={() => handleAddLatex()}
+        action={() => handleAddLatex()}
       />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  cancelFab: {
+    position: "absolute",
+    margin: 16,
+    left: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+  addFab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+});

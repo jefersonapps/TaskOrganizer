@@ -1,29 +1,29 @@
-import React, { useState, useContext, useCallback } from "react";
-import { View, PanResponder, StatusBar } from "react-native";
-import LottieView from "lottie-react-native";
-import {
-  FAB,
-  Portal,
-  Dialog,
-  Paragraph,
-  Button,
-  Text,
-} from "react-native-paper";
 import { useNavigation } from "@react-navigation/native";
+import React, { useCallback, useContext, useState } from "react";
+import { PanResponder, StatusBar, StyleSheet, View } from "react-native";
+import { FAB } from "react-native-paper";
 
-import { useAppTheme } from "../../theme/Theme";
-import { SheduleCard } from "./SheduleCard";
-import { AppContext, SheduleActivityType } from "../../contexts/AppContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackSheduleParamList } from "./SheduleStack";
-import { daysOfWeek } from "../../constants/constants";
-import { TopBarComponent } from "./TopBarComponent";
-import * as Haptics from "expo-haptics";
+
 import DraggableFlatList from "react-native-draggable-flatlist";
 import {
   HandlerStateChangeEvent,
   Swipeable,
 } from "react-native-gesture-handler";
+import { useSharedValue } from "react-native-reanimated";
+import { AlertComponent } from "../../components/AlertComponent";
+import { FABComponent } from "../../components/FABComponent";
+import { SelectMultiplesComponent } from "../../components/SelectMultiplesComponent";
+import { daysOfWeek } from "../../constants/constants";
+import { AppContext, SheduleActivityType } from "../../contexts/AppContext";
+import { useAppTheme } from "../../theme/Theme";
+import { RootStackSheduleParamList } from "./SheduleStack";
+import { NotFoundSchedule } from "./schedule-components/NotFoundSchedule";
+import { ScheduleHeader } from "./schedule-components/ScheduleHeader";
+import { ScheduleSearchBarComponent } from "./schedule-components/ScheduleSearchBarComponent";
+import { SwipeComponent } from "./schedule-components/SwipeComponent";
+import { TopBarComponent } from "./schedule-components/TopBarComponent";
+import { renderScheduleItem } from "./schedule-components/renderScheduleItem";
 
 type SheduleNavigation = NativeStackNavigationProp<RootStackSheduleParamList>;
 
@@ -41,22 +41,37 @@ export const ScheduleScreen = () => {
 
   const [activeTab, setActiveTab] = useState(0);
 
-  // Função para adicionar uma nova atividade
+  const [activitieToDelete, setActivitieToDelete] = useState<string | null>(
+    null
+  );
+  const [selectedSchedulesActivities, setSelectedScheduleActivities] = useState<
+    ScheduleMultipleDelete[]
+  >([]);
+
+  const [swipeDirection, setSwipeDirection] = useState("left");
+
+  const [confirmDeleteMultiples, setConfirmDeleteMultiples] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchHeight = useSharedValue(0);
+
+  const DEFAULT_SEARCH_HEIGHT = 52;
+
+  const activitiesForTheDay = schedule[daysOfWeek[activeTab]];
+
+  const selectedActivitiesForTheDay = selectedSchedulesActivities.filter(
+    (activity) => activity.day === daysOfWeek[activeTab]
+  );
+
   const addActivity = (day: string) => {
     navigation.navigate("AddSheduleActivityScreen", { day: day });
   };
 
-  const [activitieToDelete, setActivitieToDelete] = useState<string | null>(
-    null
-  );
-
   const handleDelete = useCallback((id: string) => {
     setActivitieToDelete(id);
   }, []);
-
-  const [selectedSchedulesActivities, setSelectedScheduleActivities] = useState<
-    ScheduleMultipleDelete[]
-  >([]);
 
   const confirmDelete = useCallback(() => {
     if (activitieToDelete) {
@@ -87,8 +102,6 @@ export const ScheduleScreen = () => {
     [activeTab, schedule]
   );
 
-  const [swipeDirection, setSwipeDirection] = useState("left");
-
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: () => true,
     onPanResponderRelease: (event, gestureState) => {
@@ -107,17 +120,12 @@ export const ScheduleScreen = () => {
     },
   });
 
-  interface RenderItemProps {
-    item: SheduleActivityType;
-    drag: () => void;
-    isActive: boolean;
-  }
-
   const handleLongPress = useCallback(
     (id: string, day: string) => {
       if (selectedSchedulesActivities.length === 0) {
         setSelectedScheduleActivities([{ id: id, day: day }]);
       }
+      setIsSearchOpen(false);
     },
     [selectedSchedulesActivities]
   );
@@ -155,36 +163,16 @@ export const ScheduleScreen = () => {
     },
     []
   );
-  const [confirmDeleteMultiples, setConfirmDeleteMultiples] = useState(false);
 
   const deleteSelectedActivities = useCallback(() => {
     handleDeleteMultiple(selectedSchedulesActivities);
     setConfirmDeleteMultiples(false);
+    setSearchQuery("");
   }, [selectedSchedulesActivities, handleDeleteMultiple]);
 
   const handleConfirmDeleteMultiples = useCallback(() => {
     setConfirmDeleteMultiples(true);
   }, []);
-
-  const renderItem = ({ item, drag, isActive }: RenderItemProps) => {
-    return (
-      <SheduleCard
-        swipeDirection={swipeDirection}
-        handleDelete={handleDelete}
-        handleEdit={handleUpdate}
-        item={item}
-        isActive={isActive}
-        onDrag={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-          drag();
-        }}
-        onLongPress={handleLongPress}
-        onPress={handlePress}
-        selectedSchedules={selectedSchedulesActivities}
-        day={daysOfWeek[activeTab]}
-      />
-    );
-  };
 
   const onDragEnd = useCallback(
     (data: SheduleActivityType[]) => {
@@ -214,139 +202,122 @@ export const ScheduleScreen = () => {
     });
   }, [schedule, activeTab]);
 
-  const activitiesForTheDay = schedule[daysOfWeek[activeTab]];
-  const selectedActivitiesForTheDay = selectedSchedulesActivities.filter(
-    (activity) => activity.day === daysOfWeek[activeTab]
+  const filterActivitiesByText = useCallback(
+    (activities: SheduleActivityType[], query: string) => {
+      if (!query) {
+        return activities;
+      }
+
+      const normalizedQuery = query.toLowerCase();
+      const filterActivityArray = (activityArray: SheduleActivityType[]) =>
+        activityArray.filter(
+          (activity) =>
+            activity.text.toLowerCase().includes(normalizedQuery) ||
+            activity.title.toLowerCase().includes(normalizedQuery)
+        );
+
+      const filtered = filterActivityArray(activities);
+      return filtered;
+    },
+    []
   );
 
-  const handleSwipeLeft = () => {
+  const filteredActivitiesByText = filterActivitiesByText(
+    schedule[daysOfWeek[activeTab]],
+    searchQuery
+  );
+
+  const handleSwipeLeft = useCallback(() => {
     setActiveTab((prevTab) =>
       prevTab < daysOfWeek.length - 1 ? prevTab + 1 : prevTab
     );
-  };
+  }, []);
 
-  const handleSwipeRight = () => {
+  const handleSwipeRight = useCallback(() => {
     setActiveTab((prevTab) => (prevTab > 0 ? prevTab - 1 : prevTab));
-  };
+  }, []);
 
-  const handleSwipe = (
-    event: HandlerStateChangeEvent<Record<string, unknown>>
-  ) => {
-    if (
-      event.nativeEvent.velocityX &&
-      Number(event.nativeEvent.velocityX) > 0
-    ) {
-      handleSwipeRight();
-      setSwipeDirection("right");
-    } else if (
-      event.nativeEvent.velocityX &&
-      Number(event.nativeEvent.velocityX) < 0
-    ) {
-      handleSwipeLeft();
-      setSwipeDirection("left");
-    }
-  };
+  const handleSwipe = useCallback(
+    (event: HandlerStateChangeEvent<Record<string, unknown>>) => {
+      setLottieViewVisible(false);
+
+      if (
+        event.nativeEvent.velocityX &&
+        Number(event.nativeEvent.velocityX) > 0
+      ) {
+        handleSwipeRight();
+        setSwipeDirection("right");
+      } else if (
+        event.nativeEvent.velocityX &&
+        Number(event.nativeEvent.velocityX) < 0
+      ) {
+        handleSwipeLeft();
+        setSwipeDirection("left");
+      }
+    },
+    []
+  );
 
   return (
-    <View style={{ backgroundColor: theme.colors.background, flex: 1 }}>
-      <Portal>
-        <Dialog
-          visible={!!activitieToDelete}
-          onDismiss={() => setActivitieToDelete(null)}
-        >
-          <Dialog.Title>Remover Atividade</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>Tem certeza que quer remover esta atividade?</Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setActivitieToDelete(null)}>Cancelar</Button>
-            <Button onPress={confirmDelete}>Ok</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+    <View
+      style={{
+        backgroundColor: theme.colors.background,
+        flex: 1,
+      }}
+    >
+      <AlertComponent
+        title="Remover Atividade"
+        content="Tem certeza que quer remover esta atividade?"
+        visible={!!activitieToDelete}
+        confirmText="Remover"
+        onConfirm={confirmDelete}
+        dismissText="Cancelar"
+        onDismiss={() => setActivitieToDelete(null)}
+      />
 
-      <Portal>
-        <Dialog
-          visible={!!confirmDeleteMultiples}
-          onDismiss={() => setConfirmDeleteMultiples(false)}
-        >
-          <Dialog.Title>Remover Atividades</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>
-              Tem certeza que quer remover as{" "}
-              {selectedSchedulesActivities.length} atividades selecionadas?
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setConfirmDeleteMultiples(false)}>
-              Cancelar
-            </Button>
-            <Button onPress={deleteSelectedActivities}>Sim</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-      {/* Botões de apagar */}
+      <AlertComponent
+        title="Remover Atividades"
+        content={
+          selectedSchedulesActivities.length > 1
+            ? `Tem certeza que quer remover as ${selectedSchedulesActivities.length} atividades selecionadas?`
+            : "Tem certeza que quer remover a atividade selecionada?"
+        }
+        visible={!!confirmDeleteMultiples}
+        dismissText="Cancelar"
+        onDismiss={() => setConfirmDeleteMultiples(false)}
+        confirmText="Remover"
+        onConfirm={deleteSelectedActivities}
+      />
+
       {selectedSchedulesActivities.length > 0 ? (
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: StatusBar.currentHeight,
-            paddingVertical: 6,
-            paddingHorizontal: 14,
-          }}
-        >
-          <Button
-            style={{ marginRight: 14 }}
-            icon={
-              selectedActivitiesForTheDay.length === activitiesForTheDay.length
-                ? "circle"
-                : "circle-outline"
-            }
-            mode="outlined"
-            onPress={selectAllScheduleActivities}
-          >
-            Todas
-          </Button>
-          <Button
-            mode="contained"
-            onPress={handleConfirmDeleteMultiples}
-            icon="delete"
-          >
-            Apagar: {selectedSchedulesActivities.length}
-          </Button>
-        </View>
+        <SelectMultiplesComponent
+          allSelected={
+            selectedActivitiesForTheDay.length === activitiesForTheDay.length
+          }
+          handleConfirmDeleteMultiples={handleConfirmDeleteMultiples}
+          selectAllItems={selectAllScheduleActivities}
+          selectedItems={selectedSchedulesActivities}
+          style={{ paddingTop: StatusBar.currentHeight, marginVertical: 4 }}
+        />
       ) : (
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            paddingTop: StatusBar.currentHeight ?? 18 + 12,
-            paddingBottom: 12,
-            paddingHorizontal: 14,
-            backgroundColor: theme.colors.customBackground,
-            borderBottomWidth: 2,
-            borderBottomColor: theme.colors.surfaceDisabled,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: theme.colors.primary,
-              paddingVertical: 4,
-            }}
-          >
-            Agenda Semanal
-          </Text>
-        </View>
+        <ScheduleHeader
+          isSearchOpen={isSearchOpen}
+          searchHeight={searchHeight}
+          setIsSearchOpen={setIsSearchOpen}
+          DEFAULT_SEARCH_HEIGHT={DEFAULT_SEARCH_HEIGHT}
+        />
       )}
 
       <TopBarComponent setActiveTab={setActiveTab} activeTab={activeTab} />
-
-      {schedule[daysOfWeek[activeTab]]?.length > 0 ? (
+      {isSearchOpen && (
+        <ScheduleSearchBarComponent
+          searchHeight={searchHeight}
+          setIsSearchOpen={setIsSearchOpen}
+          setSearchQuery={setSearchQuery}
+          DEFAULT_SEARCH_HEIGHT={DEFAULT_SEARCH_HEIGHT}
+        />
+      )}
+      {filteredActivitiesByText.length > 0 ? (
         <Swipeable
           containerStyle={{
             flex: 1,
@@ -357,10 +328,22 @@ export const ScheduleScreen = () => {
             contentContainerStyle={{
               paddingBottom: 80,
               backgroundColor: theme.colors.surface,
-              paddingTop: 14,
             }}
-            data={schedule[daysOfWeek[activeTab]] || []}
-            renderItem={renderItem}
+            data={filteredActivitiesByText || []}
+            renderItem={({ drag, isActive, item }) =>
+              renderScheduleItem({
+                day: daysOfWeek[activeTab],
+                drag,
+                isActive,
+                item,
+                handleDelete,
+                handleLongPress,
+                handlePress,
+                handleUpdate,
+                selectedSchedulesActivities,
+                swipeDirection,
+              })
+            }
             keyExtractor={(item) => item.id}
             onDragEnd={({ data }) => onDragEnd(data)}
           />
@@ -374,83 +357,60 @@ export const ScheduleScreen = () => {
           }}
           onActivated={handleSwipe}
         >
-          <LottieView
-            autoPlay
-            style={{
-              width: 160,
-              height: 160,
-            }}
-            source={require("../../lottie-files/beach-vacation.json")}
-          />
+          <NotFoundSchedule update={activeTab} />
         </Swipeable>
       )}
 
-      <View
-        style={{
-          position: "absolute",
-          left: 0,
-          bottom: 12,
-          zIndex: 999,
-          width: "100%",
-          height: 60,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <View
-          {...panResponder.panHandlers}
-          style={{
-            padding: 10,
-            borderWidth: 2,
-            borderColor: theme.colors.primary,
-            backgroundColor: theme.colors.surfaceDisabled,
-            width: 150,
-            height: 50,
-            borderRadius: 9999,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          {isLottieViewVisible && (
-            <LottieView
-              autoPlay
-              style={{
-                width: 60,
-                height: 60,
-              }}
-              source={require("../../lottie-files/swipe3.json")}
-            />
-          )}
-        </View>
-      </View>
+      <SwipeComponent
+        isLottieViewVisible={isLottieViewVisible}
+        panResponder={panResponder}
+        style={styles.swipe}
+      />
 
       {selectedSchedulesActivities.length > 0 && (
         <FAB
-          style={{
-            position: "absolute",
-            margin: 16,
-            left: 0,
-            bottom: 0,
-            zIndex: 999,
-            backgroundColor: theme.colors.surfaceVariant,
-          }}
+          style={[
+            styles.cancelFab,
+            { backgroundColor: theme.colors.surfaceVariant },
+          ]}
           icon="window-close"
           onPress={() => setSelectedScheduleActivities([])}
         />
       )}
 
-      <FAB
-        style={{
-          position: "absolute",
-          margin: 16,
-          right: 0,
-          bottom: 0,
-          zIndex: 999,
-        }}
+      <FABComponent
+        style={styles.addFab}
         icon="plus"
-        onPress={() => addActivity(daysOfWeek[activeTab])}
+        action={() => addActivity(daysOfWeek[activeTab])}
       />
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  swipe: {
+    position: "absolute",
+    left: 0,
+    bottom: 12,
+    zIndex: 999,
+    width: "100%",
+    height: 60,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelFab: {
+    position: "absolute",
+    margin: 16,
+    left: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+  addFab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+});

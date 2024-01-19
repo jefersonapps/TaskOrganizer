@@ -1,7 +1,7 @@
-import { View } from "react-native";
-import { useAppTheme } from "../theme/Theme";
-import { Button, Card, Paragraph, Title } from "react-native-paper";
 import * as Linking from "expo-linking";
+import { StyleSheet, View } from "react-native";
+import { Button, Card, Paragraph, Title } from "react-native-paper";
+import { useAppTheme } from "../theme/Theme";
 
 interface GetPermissionTypes {
   title: string;
@@ -22,12 +22,7 @@ export const GetPermission = ({
 
   return (
     <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: theme.colors.background,
-      }}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <Card style={{ padding: 20, maxWidth: 300 }}>
         <Card.Title title="Aviso" />
@@ -61,3 +56,11 @@ export const GetPermission = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

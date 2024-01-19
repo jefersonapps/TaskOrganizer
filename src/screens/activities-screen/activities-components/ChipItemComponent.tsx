@@ -1,8 +1,8 @@
+import { StyleSheet, View } from "react-native";
 import { Chip, Text } from "react-native-paper";
-import { View } from "react-native";
+import { useAppTheme } from "../../../theme/Theme";
+import { FilterType } from "../ActivitiesScreen";
 import { CircleBadgeComponent } from "./CircleBadgeComponent";
-import { useAppTheme } from "../../theme/Theme";
-import { FilterType } from "./ActivitiesScreen";
 
 interface ChipItemProps {
   filter: string;
@@ -39,14 +39,7 @@ export const ChipItemComponent = ({
       }}
       onPress={() => setFilter(chipFilter)}
     >
-      <View
-        style={{
-          alignItems: "center",
-          display: "flex",
-          flexDirection: "row",
-          gap: 6,
-        }}
-      >
+      <View style={styles.content}>
         <Text
           style={{
             fontWeight: "bold",
@@ -65,3 +58,12 @@ export const ChipItemComponent = ({
     </Chip>
   );
 };
+
+const styles = StyleSheet.create({
+  content: {
+    alignItems: "center",
+    display: "flex",
+    flexDirection: "row",
+    gap: 6,
+  },
+});

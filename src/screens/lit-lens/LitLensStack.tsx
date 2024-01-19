@@ -1,8 +1,8 @@
-import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { LitLensScreen } from "./LitLensScreen";
+import React from "react";
 import { useAppTheme } from "../../theme/Theme";
 import { CameraScreen } from "./CameraScreen";
+import { LitLensScreen } from "./LitLensScreen";
 
 export const LitLensStack = () => {
   const Stack = createNativeStackNavigator();
@@ -18,7 +18,10 @@ export const LitLensStack = () => {
       <Stack.Screen
         name="LitLensScreen"
         component={LitLensScreen}
-        options={{ headerTitle: "LitLens" }}
+        options={{
+          headerTitle: "LitLens",
+          headerTitleStyle: { fontWeight: "bold", fontSize: 20 },
+        }}
       />
       <Stack.Screen
         name="CameraScreen"

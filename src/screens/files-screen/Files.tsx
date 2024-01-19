@@ -1,28 +1,29 @@
 import React, { useCallback, useContext, useState } from "react";
-import { StatusBar, TouchableNativeFeedback, View } from "react-native";
 import {
-  Button,
-  Divider,
-  Dialog,
-  Portal,
-  Paragraph,
-  FAB,
-  Text,
-  TextInput,
-} from "react-native-paper";
+  StatusBar,
+  StyleSheet,
+  TouchableNativeFeedback,
+  View,
+} from "react-native";
+import { Divider, FAB } from "react-native-paper";
 
+import * as Crypto from "expo-crypto";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
+import * as Haptics from "expo-haptics";
 import * as IntentLauncher from "expo-intent-launcher";
-import * as Crypto from "expo-crypto";
+import DraggableFlatList from "react-native-draggable-flatlist";
+import { useSharedValue } from "react-native-reanimated";
+import Share, { ShareOptions } from "react-native-share";
+import { AlertComponent } from "../../components/AlertComponent";
+import { FABComponent } from "../../components/FABComponent";
+import { SelectMultiplesComponent } from "../../components/SelectMultiplesComponent";
 import { AppContext, File } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
 import { ListItem } from "./ListItem";
-import LottieView from "lottie-react-native";
-import DraggableFlatList from "react-native-draggable-flatlist";
-import Share, { ShareOptions } from "react-native-share";
-import * as Haptics from "expo-haptics";
-import { CustomAlert } from "../../components/CustomAlert";
+import { FilesHeader } from "./files-components/FilesHeader";
+import { FilesSearchBarComponent } from "./files-components/FilesSearchBarComponent";
+import { NotFoundFile } from "./files-components/NotFoundFile";
 
 export type FilesMultipleDelete = {
   id: string;
@@ -34,6 +35,14 @@ export default function Files() {
   const [visible, setVisible] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<FilesMultipleDelete[]>([]);
+  const [confirmDeleteMultiples, setConfirmDeleteMultiples] = useState(false);
+
+  const searchHeight = useSharedValue(0);
+
+  const DEFATULT_SEARCH_HEIGHT = 52;
 
   const theme = useAppTheme();
 
@@ -67,8 +76,6 @@ export default function Files() {
     setFileToDelete(id);
   }, []);
 
-  const [selectedFiles, setSelectedFiles] = useState<FilesMultipleDelete[]>([]);
-
   const confirmDelete = useCallback(() => {
     setFiles((prevFiles) =>
       prevFiles.filter((file) => file.id !== fileToDelete)
@@ -77,13 +84,13 @@ export default function Files() {
       return prevFiles.filter((activity) => activity.id !== fileToDelete);
     });
     setFileToDelete(null);
-    setSearchQuery("");
   }, [fileToDelete]);
 
   const handleLongPress = useCallback(
     (id: string, uri: string) => {
       if (selectedFiles.length === 0) {
         setSelectedFiles([{ id: id, uri: uri }]);
+        setIsSearchOpen(false);
       }
     },
     [selectedFiles]
@@ -116,11 +123,11 @@ export default function Files() {
     setSelectedFiles([]);
     setSearchQuery("");
   }, []);
-  const [confirmDeleteMultiples, setConfirmDeleteMultiples] = useState(false);
 
   const deleteselectedFiles = useCallback(() => {
     handleDeleteMultiple(selectedFiles);
     setConfirmDeleteMultiples(false);
+    setSearchQuery("");
   }, [selectedFiles, handleDeleteMultiple]);
 
   const handleConfirmDeleteMultiples = useCallback(() => {
@@ -151,7 +158,7 @@ export default function Files() {
     }
   };
 
-  const filterFiles = (files: File[], query: string) => {
+  const filterFiles = useCallback((files: File[], query: string) => {
     if (!query) {
       return files;
     }
@@ -160,174 +167,74 @@ export default function Files() {
     return files.filter((file) =>
       file.name.toLowerCase().includes(normalizedQuery)
     );
-  };
+  }, []);
 
   const filteredFiles = filterFiles(files, searchQuery);
 
   return (
     <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.colors.background,
-        alignItems: "center",
-        justifyContent: "flex-start",
-      }}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
-      {selectedFiles.length > 0 && (
-        <>
-          <FAB
-            style={{
-              position: "absolute",
-              margin: 16,
-              left: 68,
-              bottom: 0,
-              zIndex: 999,
-              backgroundColor: theme.colors.surfaceVariant,
-            }}
-            icon="share-variant"
-            onPress={() => shareFiles(selectedFiles)}
-          />
-
-          <FAB
-            style={{
-              position: "absolute",
-              margin: 16,
-              left: 0,
-              bottom: 0,
-              zIndex: 999,
-              backgroundColor: theme.colors.surfaceVariant,
-            }}
-            icon="window-close"
-            onPress={() => setSelectedFiles([])}
-          />
-        </>
-      )}
-      <FAB
-        style={{
-          position: "absolute",
-          margin: 16,
-          right: 0,
-          bottom: 0,
-          zIndex: 999,
-        }}
-        icon="plus"
-        onPress={pickDocument}
-      />
-
-      <CustomAlert
-        title="Não foi possível abrir o arquivo"
+      <AlertComponent
         content="Parece que você não tem um aplicativo capaz de abrir este tipo de
-              arquivo. Por favor, baixe um aplicativo compatível e tente
-              novamente."
-        isVisible={visible}
-        setIsVisible={setVisible}
+      arquivo. Por favor, baixe um aplicativo compatível e tente
+      novamente."
+        title="Não foi possível abrir o arquivo"
+        visible={visible}
+        confirmText="Entendi"
+        onConfirm={() => setVisible(false)}
       />
 
-      <Portal>
-        <Dialog
-          visible={!!fileToDelete}
-          onDismiss={() => setFileToDelete(null)}
-        >
-          <Dialog.Title>Remover arquivo</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>
-              Tem certeza que quer remover este arquivo da lista?
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setFileToDelete(null)}>Cancelar</Button>
-            <Button onPress={confirmDelete}>Ok</Button>
-          </Dialog.Actions>
-        </Dialog>
+      <AlertComponent
+        content="Tem certeza que quer remover este arquivo da lista?"
+        title="Remover arquivo"
+        visible={!!fileToDelete}
+        dismissText="Cancelar"
+        onDismiss={() => setFileToDelete(null)}
+        confirmText="Remover"
+        onConfirm={confirmDelete}
+      />
 
-        <Dialog
-          visible={!!confirmDeleteMultiples}
-          onDismiss={() => setConfirmDeleteMultiples(false)}
-        >
-          <Dialog.Title>Remover Arquivos</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph style={{ textAlign: "justify" }}>
-              Tem certeza que quer remover os {selectedFiles.length} arquivos
-              selecionados?
-            </Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setConfirmDeleteMultiples(false)}>
-              Cancelar
-            </Button>
-            <Button onPress={deleteselectedFiles}>Sim</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+      <AlertComponent
+        content={
+          selectedFiles.length > 1
+            ? `Tem certeza que quer remover os ${selectedFiles.length} arquivos selecionados?`
+            : "Tem certeza que quer remover o arquivo selecionado?"
+        }
+        title="Remover Arquivos"
+        visible={!!confirmDeleteMultiples}
+        confirmText="Remover"
+        onConfirm={deleteselectedFiles}
+        dismissText="Cancelar"
+        onDismiss={() => setConfirmDeleteMultiples(false)}
+      />
 
       {selectedFiles.length > 0 ? (
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginTop: StatusBar.currentHeight,
-            paddingVertical: 6,
-            paddingHorizontal: 14,
-          }}
-        >
-          <Button
-            style={{ marginRight: 14 }}
-            icon={
-              selectedFiles.length === files.length
-                ? "circle"
-                : "circle-outline"
-            }
-            mode="outlined"
-            onPress={selectAllFiles}
-          >
-            Todas
-          </Button>
-
-          <Button
-            mode="contained"
-            onPress={handleConfirmDeleteMultiples}
-            icon="delete"
-          >
-            {selectedFiles.length}
-          </Button>
-        </View>
+        <SelectMultiplesComponent
+          allSelected={selectedFiles.length === files.length}
+          handleConfirmDeleteMultiples={handleConfirmDeleteMultiples}
+          selectAllItems={selectAllFiles}
+          selectedItems={selectedFiles}
+          style={{ paddingTop: StatusBar.currentHeight, marginVertical: 4 }}
+        />
       ) : (
-        <View
-          style={{
-            width: "100%",
-            flexDirection: "row",
-            justifyContent: "space-between",
-            paddingTop: StatusBar.currentHeight ?? 18 + 12,
-            paddingBottom: 12,
-            paddingHorizontal: 14,
-            backgroundColor: theme.colors.customBackground,
-            borderBottomWidth: 2,
-            borderBottomColor: theme.colors.surfaceDisabled,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: 20,
-              fontWeight: "bold",
-              color: theme.colors.primary,
-              paddingVertical: 4,
-            }}
-          >
-            Arquivos
-          </Text>
-        </View>
+        <FilesHeader
+          DEFAULT_SEARCH_HEIGHT={DEFATULT_SEARCH_HEIGHT}
+          isSearchOpen={isSearchOpen}
+          searchHeight={searchHeight}
+          setIsSearchOpen={setIsSearchOpen}
+        />
       )}
 
-      <View style={{ flexDirection: "row" }}>
-        <TextInput
-          placeholder="Busque arquivos..."
-          style={{ flex: 1 }}
-          value={searchQuery}
-          onChangeText={(text) => setSearchQuery(text)}
-          left={<TextInput.Icon icon="magnify" />}
+      {isSearchOpen && (
+        <FilesSearchBarComponent
+          setIsSearchOpen={setIsSearchOpen}
+          DEFAULT_SEARCH_HEIGHT={DEFATULT_SEARCH_HEIGHT}
+          searchHeight={searchHeight}
+          setSearchQuery={setSearchQuery}
+          searchQuery={searchQuery}
         />
-      </View>
+      )}
 
       {filteredFiles.length > 0 ? (
         <View style={{ flex: 1, width: "100%" }}>
@@ -372,19 +279,61 @@ export default function Files() {
           />
         </View>
       ) : (
-        <View
-          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
-          <LottieView
-            autoPlay
-            style={{
-              width: 160,
-              height: 160,
-            }}
-            source={require("../../lottie-files/files-animation.json")}
-          />
-        </View>
+        <NotFoundFile />
       )}
+
+      {selectedFiles.length > 0 && (
+        <>
+          <FAB
+            style={[
+              styles.shareFab,
+              { backgroundColor: theme.colors.surfaceVariant },
+            ]}
+            icon="share-variant"
+            onPress={() => shareFiles(selectedFiles)}
+          />
+
+          <FAB
+            style={[
+              styles.cancelFab,
+              { backgroundColor: theme.colors.surfaceVariant },
+            ]}
+            icon="window-close"
+            onPress={() => setSelectedFiles([])}
+          />
+        </>
+      )}
+      <FABComponent style={styles.addFab} icon="plus" action={pickDocument} />
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  shareFab: {
+    position: "absolute",
+    margin: 16,
+    left: 68,
+    bottom: 0,
+    zIndex: 999,
+  },
+  cancelFab: {
+    position: "absolute",
+    margin: 16,
+    left: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+  addFab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    zIndex: 999,
+  },
+});

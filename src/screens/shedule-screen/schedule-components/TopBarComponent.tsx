@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from "react";
 import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
   Animated,
   ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Text } from "react-native-paper";
-import { useAppTheme } from "../../theme/Theme";
-import { daysOfWeek } from "../../constants/constants";
+import { daysOfWeek } from "../../../constants/constants";
+import { useAppTheme } from "../../../theme/Theme";
 
 interface TopTabsProps {
   setActiveTab: (activeTab: number) => void;
@@ -40,7 +40,10 @@ export const TopBarComponent = ({ setActiveTab, activeTab }: TopTabsProps) => {
 
   return (
     <View>
-      <ScrollView horizontal contentContainerStyle={{ height: 35 }}>
+      <ScrollView
+        horizontal
+        contentContainerStyle={{ height: 35, marginBottom: 8 }}
+      >
         {daysOfWeek.map((day, index) => (
           <TouchableOpacity
             activeOpacity={0.6}

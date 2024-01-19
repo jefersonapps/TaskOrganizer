@@ -1,7 +1,6 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { ConfigScreen } from "./ConfigScreen";
-import { FunctionalitiesScreen } from "./FunctionalitiesScreen";
 import { useAppTheme } from "../../theme/Theme";
+import { ConfigScreen } from "./ConfigScreen";
 
 export function ConfigStack() {
   const Stack = createNativeStackNavigator();
@@ -18,9 +17,11 @@ export function ConfigStack() {
       <Stack.Screen
         name="Config"
         component={ConfigScreen}
-        options={{ title: "Ajustes e Relatórios" }}
+        options={{
+          title: "Ajustes e Relatórios",
+          headerTitleStyle: { fontWeight: "bold", fontSize: 20 },
+        }}
       />
-      <Stack.Screen name="Functionalities" component={FunctionalitiesScreen} />
     </Stack.Navigator>
   );
 }

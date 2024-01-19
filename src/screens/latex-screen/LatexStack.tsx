@@ -1,12 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-
-// import { AddActivitieScreen } from "./AddActivitieScreen";
-import { useAppTheme } from "../../theme/Theme";
-// import { ActivityType, SheduleActivityType } from "../../contexts/AppContext";
-import { LatexScreen } from "./LatexScreen";
-import { AddLatexScreen } from "./AddLatexScreen";
 import { LatexType } from "../../contexts/AppContext";
+import { useAppTheme } from "../../theme/Theme";
+import { AddLatexScreen } from "./AddLatexScreen";
 import { EditLatexScreen } from "./EditLatexScreen";
+import { LatexScreen } from "./LatexScreen";
 
 export type RootStackLatexParamList = {
   LatexScreen: { latexItem: LatexType };

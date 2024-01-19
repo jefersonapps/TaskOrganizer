@@ -1,34 +1,35 @@
-import { useCallback, useContext, useState } from "react";
-import { Pressable, TouchableNativeFeedback, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { useCallback, useContext, useMemo } from "react";
 import {
-  Badge,
-  Card,
-  Chip,
-  IconButton,
-  Paragraph,
-  Snackbar,
-  Text,
-  Title,
-} from "react-native-paper";
+  Pressable,
+  StyleSheet,
+  TouchableNativeFeedback,
+  View,
+} from "react-native";
+import { Card, Chip, IconButton, Paragraph, Title } from "react-native-paper";
 import {
   ActivityType,
   AppContext,
   NotificationIdType,
-} from "../../contexts/AppContext";
-import { useNavigation } from "@react-navigation/native";
+} from "../../../contexts/AppContext";
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "./ActivitiesStack";
-import { formatTimeStamp } from "../../helpers/helperFunctions";
-import { useAppTheme } from "../../theme/Theme";
-import * as Haptics from "expo-haptics";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
-dayjs.extend(customParseFormat);
-import utc from "dayjs/plugin/utc"; // Importando o plugin utc
-dayjs.extend(utc);
 import timezone from "dayjs/plugin/timezone";
-import { ActivityMultipleDelete } from "./ActivitiesScreen";
+import utc from "dayjs/plugin/utc"; // Importando o plugin utc
+import * as Haptics from "expo-haptics";
+import Animated, { SlideInLeft } from "react-native-reanimated";
+import { priorityColors } from "../../../constants/constants";
+import {
+  formatTimeStamp,
+  getPriorityColor,
+} from "../../../helpers/helperFunctions";
+import { useAppTheme } from "../../../theme/Theme";
+import { ActivityMultipleDelete } from "../ActivitiesScreen";
+import { RootStackParamList } from "../ActivitiesStack";
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
 dayjs.extend(timezone);
 
 type ActivitiesNavigation = NativeStackNavigationProp<RootStackParamList>;
@@ -57,60 +58,25 @@ export const CardComponent = ({
   const { activities, idOfNotification } = useContext(AppContext);
   const navigation = useNavigation<ActivitiesNavigation>();
   const handleEdit = useCallback((id: string) => {
-    const activity = activities.find((a) => a.id === id);
+    const activity =
+      activities.todos.find((a) => a.id === id) ||
+      activities.checkedTodos.find((a) => a.id === id) ||
+      activities.withDeadLine.find((a) => a.id === id) ||
+      activities.withPriority.find((a) => a.id === id);
+
     if (activity) {
       navigation.navigate("EditActivity", { activity });
     }
   }, []);
 
-  const priorityColors = {
-    alta: "#dc2626",
-    media: "#ea580c",
-    baixa: "#06b6d4",
-  };
-
   const theme = useAppTheme();
 
-  const deliveryDateTime = dayjs.utc(
-    `${item.deliveryDay} ${item.deliveryTime ? item.deliveryTime : "00:00:00"}`,
-    "DD/MM/YYYY HH:mm:ss"
+  const { status, color } = getPriorityColor({ item: item, theme: theme });
+
+  const isSelected = useMemo(
+    () => selectedActivities.some((activity) => activity.id === item.id),
+    [selectedActivities]
   );
-  const now = dayjs().utc(true);
-
-  let status;
-  let color;
-
-  if (now.isBefore(deliveryDateTime, "day")) {
-    status = "Prazo: ";
-    color = theme.colors.surfaceVariant;
-  } else if (now.isSame(deliveryDateTime, "day")) {
-    if (now.isBefore(deliveryDateTime, "minute")) {
-      status = "Expira hoje: ";
-      color = theme.dark
-        ? theme.colors.tertiaryContainer
-        : theme.colors.errorContainer;
-    } else {
-      status = "Expirada: ";
-      color = theme.dark
-        ? theme.colors.errorContainer
-        : theme.colors.tertiaryContainer;
-    }
-  } else {
-    status = "Expirada: ";
-    color = theme.dark
-      ? theme.colors.errorContainer
-      : theme.colors.tertiaryContainer;
-  }
-
-  const isSelected = selectedActivities.some(
-    (activity) => activity.id === item.id
-  );
-
-  const [snackVisible, setSnackVisible] = useState(false);
-
-  const onToggleSnackBar = () => setSnackVisible(!snackVisible);
-
-  const onDismissSnackBar = () => setSnackVisible(false);
 
   return (
     <TouchableNativeFeedback
@@ -124,12 +90,7 @@ export const CardComponent = ({
       background={TouchableNativeFeedback.Ripple("#807e7e15", false)}
       useForeground
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-        }}
-      >
+      <Animated.View style={styles.rowCentered} entering={SlideInLeft}>
         {selectedActivities.length > 0 && (
           <IconButton
             icon={isSelected ? "check" : "circle-outline"}
@@ -143,37 +104,7 @@ export const CardComponent = ({
             style={{ marginLeft: 14 }}
           />
         )}
-        <View
-          style={{
-            flex: 1,
-            alignItems: "stretch",
-            position: "relative",
-          }}
-        >
-          {idOfNotification === item.id && (
-            <Badge
-              onPress={onToggleSnackBar}
-              style={{ position: "absolute", zIndex: 999, right: 14, top: 0 }}
-            >
-              !
-            </Badge>
-          )}
-
-          <Snackbar
-            style={{
-              zIndex: 999,
-              backgroundColor: theme.colors.surfaceVariant,
-            }}
-            visible={snackVisible}
-            onDismiss={onDismissSnackBar}
-            action={{
-              label: "Fechar",
-              onPress: onDismissSnackBar,
-              mode: "contained",
-            }}
-          >
-            <Text>A atividade está expirada!</Text>
-          </Snackbar>
+        <View style={styles.cardContainer}>
           <Card
             style={{
               margin: 10,
@@ -188,7 +119,11 @@ export const CardComponent = ({
               borderRightWidth: theme.dark ? 1 : 0,
               borderRightColor: theme.dark ? "#4d4b4b" : undefined,
               borderWidth: isActive ? 1 : 0,
-              borderColor: isActive ? theme.colors.inversePrimary : undefined,
+              borderColor: isActive
+                ? theme.colors.inversePrimary
+                : idOfNotification === item.id
+                ? theme.colors.tertiary
+                : undefined,
             }}
           >
             <Card.Content>
@@ -202,7 +137,7 @@ export const CardComponent = ({
                   <Title style={{ fontWeight: "bold" }}>{item.title}</Title>
                 )}
 
-                <Paragraph>{item.text}</Paragraph>
+                {item.text && <Paragraph>{item.text}</Paragraph>}
               </View>
 
               {item.deliveryDay && (
@@ -249,7 +184,18 @@ export const CardComponent = ({
             </Card.Actions>
           </Card>
         </View>
-      </View>
+      </Animated.View>
     </TouchableNativeFeedback>
   );
 };
+
+const styles = StyleSheet.create({
+  rowCentered: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  cardContainer: {
+    flex: 1,
+    alignItems: "stretch",
+  },
+});

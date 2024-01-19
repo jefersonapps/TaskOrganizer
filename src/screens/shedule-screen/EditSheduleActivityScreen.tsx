@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
-import { ScrollView } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { RouteProp } from "@react-navigation/native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React, { useContext, useEffect, useState } from "react";
+import { ScrollView, View } from "react-native";
+import { Button, RadioButton, Text } from "react-native-paper";
+import { RadioButtonComponent } from "../../components/RadioButtonComponent";
+import { TextInputComponent } from "../../components/TextInputComponent";
 import { AppContext } from "../../contexts/AppContext";
-import { Button, Text } from "react-native-paper";
 import { useAppTheme } from "../../theme/Theme";
 import { RootStackSheduleParamList } from "./SheduleStack";
-import { TextInputComponent } from "../activities-screen/TextInputComponent";
 
 type EditRoute = RouteProp<
   RootStackSheduleParamList,
@@ -30,6 +30,7 @@ export const EditSheduleActivityScreen = () => {
 
   const [text, setText] = useState(activity.text);
   const [title, setTitle] = useState(activity.title || "");
+  const [priority, setPriority] = useState("baixa");
 
   useEffect(() => {
     navigation.setOptions({
@@ -40,11 +41,12 @@ export const EditSheduleActivityScreen = () => {
             if (activity) {
               sheduleDispatch({
                 type: "update",
-                day: day, // Substitua 'Dom' pelo dia correto
+                day: day,
                 activity: {
-                  id: activity.id, // Certifique-se de que 'activity' tem uma propriedade 'id'
+                  id: activity.id,
                   text,
                   title,
+                  priority: priority,
                 },
               });
             }
@@ -79,6 +81,36 @@ export const EditSheduleActivityScreen = () => {
         label="Novo Título"
       />
       <TextInputComponent text={text} setText={setText} label="Novo conteúdo" />
+
+      <Text variant="titleMedium">Prioridade:</Text>
+      <RadioButton.Group
+        onValueChange={(newValue) => setPriority(newValue)}
+        value={priority}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          <RadioButtonComponent
+            setPriority={setPriority}
+            label="Alta"
+            value="alta"
+          />
+          <RadioButtonComponent
+            setPriority={setPriority}
+            label="Média"
+            value="media"
+          />
+          <RadioButtonComponent
+            setPriority={setPriority}
+            label="Baixa"
+            value="baixa"
+          />
+        </View>
+      </RadioButton.Group>
     </ScrollView>
   );
 };
