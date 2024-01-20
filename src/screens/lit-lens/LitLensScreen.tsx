@@ -12,8 +12,8 @@ import { GetPermission } from "../../components/GetPermission";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as ImagePicker from "expo-image-picker";
 import MlkitOcr from "react-native-mlkit-ocr";
+import { useLitLens } from "../../contexts/LitLensContext";
 import { showToast } from "../../helpers/helperFunctions";
-import { useLitLens } from "./context/LitLensContext";
 import { ActionButtons } from "./lit-lens-components/ActionButtons";
 
 type RootStackParamList = {

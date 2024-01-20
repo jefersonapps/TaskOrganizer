@@ -1,9 +1,9 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
+import { LitLensProvider } from "../../contexts/LitLensContext";
 import { useAppTheme } from "../../theme/Theme";
 import { CameraScreen } from "./CameraScreen";
 import { LitLensScreen } from "./LitLensScreen";
-import { LitLensProvider } from "./context/LitLensContext";
 
 export const LitLensStack = () => {
   const Stack = createNativeStackNavigator();

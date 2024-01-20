@@ -20,8 +20,8 @@ import { ActivityIndicator } from "react-native-paper";
 import Animated, { ZoomIn, runOnJS } from "react-native-reanimated";
 import { scanOCR } from "vision-camera-ocr";
 import { AlertComponent } from "../../components/AlertComponent";
+import { useLitLens } from "../../contexts/LitLensContext";
 import { useAppTheme } from "../../theme/Theme";
-import { useLitLens } from "./context/LitLensContext";
 
 export const CameraScreen = () => {
   const camera = useRef<Camera>(null);

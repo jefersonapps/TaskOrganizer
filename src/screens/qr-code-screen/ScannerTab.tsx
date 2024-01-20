@@ -50,7 +50,6 @@ export const ScannerTab = () => {
   }, [hasPermission]);
 
   const handleBarCodeScanned = useCallback(({ data }: { data: string }) => {
-    console.log(data);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
     if (validator.isURL(data, options)) {

@@ -20,6 +20,8 @@ interface ActionButtonsProps {
   pickMultiplesImages: () => void;
 }
 
+const ICON_SIZE = 58;
+
 export const ActionButtons = ({
   onCopy,
   ocrResult,
@@ -29,7 +31,7 @@ export const ActionButtons = ({
   pickMultiplesImages,
 }: ActionButtonsProps) => {
   const bottom = useSharedValue(0);
-  const height = useSharedValue(48);
+  const height = useSharedValue(ICON_SIZE);
 
   useEffect(() => {
     const keyboardDidHideListener = Keyboard.addListener(
@@ -60,8 +62,6 @@ export const ActionButtons = ({
   });
 
   const [isToggleOpen, setIsToggleOpen] = useState(false);
-
-  const ICON_SIZE = 58;
 
   const openToggle = useCallback(() => {
     height.value = withSpring(ICON_SIZE * 4);
@@ -171,5 +171,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     position: "absolute",
+    height: ICON_SIZE,
   },
 });
