@@ -33,6 +33,7 @@ export const UserNameSection = ({
     >
       <View style={{ flex: 1 }}>
         <TextInputComponent
+          autofocus
           label="Digite seu nome..."
           setText={onChangeText}
           text={userName}

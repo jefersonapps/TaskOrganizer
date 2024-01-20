@@ -19,6 +19,7 @@ import { AlertComponent } from "../../components/AlertComponent";
 import { FABComponent } from "../../components/FABComponent";
 import { SelectMultiplesComponent } from "../../components/SelectMultiplesComponent";
 import { AppContext, File } from "../../contexts/AppContext";
+import { showToast } from "../../helpers/helperFunctions";
 import { useAppTheme } from "../../theme/Theme";
 import { ListItem } from "./ListItem";
 import { FilesHeader } from "./files-components/FilesHeader";
@@ -47,16 +48,20 @@ export default function Files() {
   const theme = useAppTheme();
 
   const pickDocument = async () => {
-    let result = await DocumentPicker.getDocumentAsync({});
-    if (!result.canceled) {
-      setFiles([
-        ...files,
-        {
-          id: Crypto.randomUUID(),
-          name: result.assets[0].name,
-          uri: result.assets[0].uri,
-        },
-      ]);
+    try {
+      let result = await DocumentPicker.getDocumentAsync({});
+      if (!result.canceled) {
+        setFiles([
+          ...files,
+          {
+            id: Crypto.randomUUID(),
+            name: result.assets[0].name,
+            uri: result.assets[0].uri,
+          },
+        ]);
+      }
+    } catch (error) {
+      showToast("Erro ao importar arquivo, feche o app e tente novamente...");
     }
   };
 

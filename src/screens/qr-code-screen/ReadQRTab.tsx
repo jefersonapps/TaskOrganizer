@@ -14,10 +14,19 @@ import { Image, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { AlertComponent } from "../../components/AlertComponent";
 import { AppContext } from "../../contexts/AppContext";
-import { handleVisitSite, isValidURL } from "../../helpers/helperFunctions";
+import { handleVisitSite, showToast } from "../../helpers/helperFunctions";
 import { useAppTheme } from "../../theme/Theme";
 import { CopyTextComponent } from "./qr-code-components/CopyTextComponent";
 import { RecentScans } from "./qr-code-components/RecentScans";
+
+import validator from "validator";
+const options = {
+  require_protocol: false,
+  require_valid_protocol: false,
+  allow_underscores: true,
+  allow_trailing_dot: false,
+  allow_protocol_relative_urls: false,
+};
 
 export const ReadQRTab = () => {
   const theme = useAppTheme();
@@ -87,6 +96,7 @@ export const ReadQRTab = () => {
       }
     } catch (error) {
       console.debug(error);
+      showToast("Erro ao abrir a galeria, feche o app e tente novamente...");
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +104,7 @@ export const ReadQRTab = () => {
 
   const handleReadImageScanned = useCallback(({ data }: { data: string }) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    if (isValidURL(data)) {
+    if (validator.isURL(data, options)) {
       setLink(String(data));
       setCode("");
     } else {
@@ -169,8 +179,8 @@ export const ReadQRTab = () => {
           />
         )}
         {code && <CopyTextComponent text={code} />}
-        {link && <CopyTextComponent text={link} />}
-        {isValidURL(link) && (
+        {link && <CopyTextComponent text={link} validateLink />}
+        {validator.isURL(link, options) && (
           <Button
             mode="contained"
             style={{ marginTop: 14 }}

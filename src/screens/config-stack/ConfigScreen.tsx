@@ -68,14 +68,12 @@ export function ConfigScreen() {
 
   useEffect(() => {
     if (isThemeChanged && !isFocused) {
-      console.log("desativou");
       setIsThemeChanged(false);
     }
   }, [isFocused, isThemeChanged]);
 
   useEffect(() => {
     if (isThemeChanged) {
-      console.log("chamou");
       setTheme(isDarkTheme ? MyDarkTheme : MyLightTheme);
     }
   }, [isDarkTheme, isThemeChanged]);
@@ -116,7 +114,6 @@ export function ConfigScreen() {
 
       const isBiometricEnrolled = await LocalAuthentication.isEnrolledAsync();
       if (!isBiometricEnrolled && compatible && !isBiometricEnabled) {
-        console.log("Nenhuma biometria cadastrada");
         setIsNoBiometryAlertVisible(true);
         return;
       }
@@ -130,7 +127,6 @@ export function ConfigScreen() {
           promptMessage: "Confirme sua identidade para desativar",
           fallbackLabel: "Não foi possível desbloquear, tente novamente",
         });
-        console.log(auth);
 
         if (auth.success) {
           setIsBiometricEnabled(false);

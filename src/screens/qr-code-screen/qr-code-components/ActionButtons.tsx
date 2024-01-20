@@ -1,14 +1,24 @@
 import { Dispatch, SetStateAction } from "react";
 import { View } from "react-native";
 import { Button } from "react-native-paper";
-import { handleVisitSite, isValidURL } from "../../../helpers/helperFunctions";
+import { handleVisitSite } from "../../../helpers/helperFunctions";
 import { CopyTextComponent } from "./CopyTextComponent";
+
+import validator from "validator";
+const options = {
+  require_protocol: false,
+  require_valid_protocol: false,
+  allow_underscores: true,
+  allow_trailing_dot: false,
+  allow_protocol_relative_urls: false,
+};
 
 interface ActionButtonsProps {
   code: string;
   setScanned: Dispatch<SetStateAction<boolean>>;
   setCode: Dispatch<SetStateAction<string>>;
   setLink: Dispatch<SetStateAction<string>>;
+  setKey: Dispatch<SetStateAction<"reload" | "reload-again">>;
   link: string;
   scanned: boolean;
 }
@@ -19,6 +29,7 @@ export const ActionButtons = ({
   setLink,
   link,
   scanned,
+  setKey,
 }: ActionButtonsProps) => (
   <View
     style={{
@@ -30,10 +41,10 @@ export const ActionButtons = ({
     }}
   >
     {code && <CopyTextComponent text={code} numberOfLines={4} />}
-    {link && <CopyTextComponent text={link} numberOfLines={4} />}
+    {link && <CopyTextComponent text={link} numberOfLines={4} validateLink />}
     <View
       style={{
-        flexDirection: isValidURL(link) ? "row" : "column",
+        flexDirection: validator.isURL(link, options) ? "row" : "column",
         width: "100%",
         justifyContent: "center",
         alignItems: "center",
@@ -47,12 +58,13 @@ export const ActionButtons = ({
             setScanned(false);
             setCode("");
             setLink("");
+            setKey((prev) => (prev === "reload" ? "reload-again" : "reload"));
           }}
         >
           Repetir
         </Button>
       )}
-      {isValidURL(link) && (
+      {validator.isURL(link, options) && (
         <Button
           mode="contained"
           style={{

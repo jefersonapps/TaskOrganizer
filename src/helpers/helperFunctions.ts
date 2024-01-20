@@ -125,19 +125,6 @@ export function getColorForFile(file: File) {
   }
 }
 
-export const isValidURL = (str: string) => {
-  const pattern = new RegExp(
-    "^(https?:\\/\\/)?" +
-      "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|" +
-      "((\\d{1,3}\\.){3}\\d{1,3}))" +
-      "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" +
-      "(\\?[;&a-z\\d%_.~+=-]*)?" +
-      "(\\#[-a-z\\d_]*)?$",
-    "i"
-  );
-  return !!pattern.test(str);
-};
-
 export const handleVisitSite = (link: string) => {
   let fullURL = link;
   if (!link.startsWith("http://") && !link.startsWith("https://")) {
@@ -153,7 +140,6 @@ export const cancelNotification = async (
   isEditing?: boolean
 ) => {
   if (identifier) {
-    console.log("cancelou aqui");
     await Notify.cancelScheduledNotificationAsync(identifier);
     if (!isEditing) showToast("Notificação cancelada.");
   }
@@ -166,7 +152,7 @@ export const sendNotification = async (
   data: { id: string }
 ) => {
   if (sec < 0 || !sec) return null;
-  console.log("vai mandar em", sec, "segundos.");
+
   const identifier = await Notify.scheduleNotificationAsync({
     content: {
       title: title,

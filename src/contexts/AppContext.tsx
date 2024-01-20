@@ -103,14 +103,10 @@ export const AppContext = createContext({
   ) => {},
   userName: "" as string,
   setUserName: (value: string | ((prevState: string) => string)) => {},
-  imageSource: null as string | null,
-  setImageSource: (
-    value: ((prevState: string | null) => string | null) | string | null
-  ) => {},
-  ocrResult: "" as string,
-  setOcrResult: (value: string | ((prevState: string) => string)) => {},
   isBiometricEnabled: false as boolean,
   setIsBiometricEnabled: (value: boolean) => {},
+  isAuthenticated: false as boolean,
+  setIsAuthenticated: (value: boolean) => {},
   recentReaders: [] as Scan[],
   setRecentReaders: (value: Scan[] | ((prevState: Scan[]) => Scan[])) => {},
   idOfNotification: null as string | null | number,

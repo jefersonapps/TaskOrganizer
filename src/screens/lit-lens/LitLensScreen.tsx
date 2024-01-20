@@ -1,5 +1,5 @@
 import * as Clipboard from "expo-clipboard";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import { IconButton, Text, TextInput } from "react-native-paper";
 import { Camera, useCameraDevices } from "react-native-vision-camera";
@@ -10,7 +10,10 @@ import LottieView from "lottie-react-native";
 import { GetPermission } from "../../components/GetPermission";
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { AppContext } from "../../contexts/AppContext";
+import * as ImagePicker from "expo-image-picker";
+import MlkitOcr from "react-native-mlkit-ocr";
+import { showToast } from "../../helpers/helperFunctions";
+import { useLitLens } from "./context/LitLensContext";
 import { ActionButtons } from "./lit-lens-components/ActionButtons";
 
 type RootStackParamList = {
@@ -36,7 +39,7 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
   const devices = useCameraDevices();
   const device = devices.back;
 
-  const { ocrResult, setOcrResult } = useContext(AppContext);
+  const { ocrResult, setOcrResult } = useLitLens();
 
   useEffect(() => {
     navigation.setOptions({
@@ -56,12 +59,105 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
     "granted"
   );
 
+  const [isLoading, setIsLoading] = useState(false);
+
+  const pickImage = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
+
+      if (
+        result &&
+        result.assets &&
+        result.assets.length > 0 &&
+        result.assets[0].uri
+      ) {
+        const uri = result.assets[0].uri;
+
+        try {
+          setIsLoading(true);
+
+          const results = await MlkitOcr.detectFromUri(result.assets[0].uri);
+          let ocrResultString = "";
+          results.forEach((block) => {
+            block.lines.forEach((line) => {
+              ocrResultString += line.text + "\n";
+            });
+          });
+          setOcrResult(
+            ocrResultString
+              ? ocrResultString
+              : "Nenhum texto identificado, tente novamente..."
+          );
+        } catch (error) {
+          console.debug(error);
+          showToast("Erro ao escanear, feche o app e tente novamente...");
+        }
+      }
+    } catch (error) {
+      console.debug(error);
+      showToast("Erro ao abrir a galeria, feche o app e tente novamente...");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const pickMultiplesImages = async () => {
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        quality: 1,
+      });
+
+      if (result && result.assets && result.assets.length > 0) {
+        const selectedImages = result.assets;
+
+        try {
+          setIsLoading(true);
+
+          let accumulatedOcrResultString = "";
+
+          // Loop através de cada imagem selecionada
+          for (const image of selectedImages) {
+            const uri = image.uri;
+
+            const results = await MlkitOcr.detectFromUri(uri);
+
+            results.forEach((block) => {
+              block.lines.forEach((line) => {
+                accumulatedOcrResultString += line.text + "\n";
+              });
+            });
+          }
+
+          setOcrResult(
+            accumulatedOcrResultString
+              ? accumulatedOcrResultString
+              : "Nenhum texto identificado, tente novamente..."
+          );
+        } catch (error) {
+          console.debug(error);
+          showToast("Erro ao escanear, feche o app e tente novamente...");
+        }
+      }
+    } catch (error) {
+      console.debug(error);
+      showToast("Erro ao abrir a galeria, feche o app e tente novamente...");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const checkCameraPermission = async () => {
       const status = await Camera.getCameraPermissionStatus();
       setCameraPermission(status);
     };
-
+    requestCameraPermission();
     checkCameraPermission();
   }, []);
 
@@ -81,7 +177,7 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
   useEffect(() => {
     lottieRef.current?.reset();
     lottieRef.current?.play();
-  }, [cameraPermission]);
+  }, [cameraPermission, isLoading]);
 
   const copyToClipboard = async (text: string) => {
     setIsCopied(true);
@@ -116,7 +212,7 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
       <View
         style={[styles.container, { backgroundColor: theme.colors.background }]}
       >
-        {ocrResult ? (
+        {ocrResult && !isLoading ? (
           <TextInput
             theme={{ roundness: 20 }}
             contentStyle={{ marginHorizontal: 0 }}
@@ -133,7 +229,10 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
               Bem-vindo ao LitLens! Abra a câmera, tire uma foto e tentaremos
               identificar o texto para você. Clique em{" "}
               <Text
-                onPress={() => navigation.navigate("CameraScreen")}
+                onPress={() => {
+                  navigation.navigate("CameraScreen");
+                  setOcrResult("");
+                }}
                 style={[styles.boldText, { color: theme.colors.primary }]}
               >
                 Abrir câmera
@@ -142,6 +241,7 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
               para começar.
             </Text>
             <LottieView
+              key={isLoading.toString()}
               ref={lottieRef}
               source={require("../../lottie-files/scan-doc.json")}
               style={{ width: 300 }}
@@ -153,7 +253,12 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
 
         <ActionButtons
           onCopy={() => copyToClipboard(ocrResult)}
-          onOpenCamera={() => navigation.navigate("CameraScreen")}
+          onOpenCamera={() => {
+            navigation.navigate("CameraScreen");
+            setOcrResult("");
+          }}
+          pickImage={pickImage}
+          pickMultiplesImages={pickMultiplesImages}
           isCopied={isCopied}
           ocrResult={ocrResult}
         />
@@ -165,10 +270,10 @@ export const LitLensScreen = ({ navigation }: NavigationProps) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
     padding: 14,
     gap: 14,
     justifyContent: "space-between",
+    position: "relative",
   },
   textInput: {
     flex: 1,

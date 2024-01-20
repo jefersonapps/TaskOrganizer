@@ -20,6 +20,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { AlertComponent } from "../../components/AlertComponent";
 import { TextInputComponent } from "../../components/TextInputComponent";
+import { showToast } from "../../helpers/helperFunctions";
 import { PickColor } from "./qr-code-components/PickColor";
 
 export const CreateQRComponent = () => {
@@ -82,6 +83,7 @@ export const CreateQRComponent = () => {
       }
     } catch (error) {
       console.log(error);
+      showToast("Erro ao baixar QR, feche o app e tente novamente...");
     }
   };
 
@@ -105,18 +107,22 @@ export const CreateQRComponent = () => {
   };
 
   const pickImage = async () => {
-    if (!imagePickerStatus?.granted) {
-      requestImagePickerPermission();
-    }
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+    try {
+      if (!imagePickerStatus?.granted) {
+        requestImagePickerPermission();
+      }
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
 
-    if (!result.canceled) {
-      setLogoUri(result.assets[0].uri);
+      if (!result.canceled) {
+        setLogoUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      showToast("Erro ao abrir a galeria, feche o app e tente novamente...");
     }
   };
 

@@ -11,6 +11,7 @@ type TextInputComponentProps = {
   noMultiline?: boolean;
   maxHeight?: number;
   minHeight?: number;
+  autofocus?: boolean;
 };
 
 export const TextInputComponent = ({
@@ -20,6 +21,7 @@ export const TextInputComponent = ({
   noMultiline,
   maxHeight = 200,
   minHeight = 0,
+  autofocus,
 }: TextInputComponentProps) => {
   const inputRef = useRef<ReactTextInput | null>(null);
 
@@ -40,6 +42,7 @@ export const TextInputComponent = ({
       <TextInput
         ref={inputRef}
         theme={{ roundness: 20 }}
+        autoFocus={autofocus}
         contentStyle={{
           marginHorizontal: 0,
         }}

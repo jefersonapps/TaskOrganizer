@@ -2,8 +2,16 @@ import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
 import { ScrollView, TouchableOpacity } from "react-native";
 import { Card, IconButton, Text } from "react-native-paper";
-import { handleVisitSite, isValidURL } from "../../../helpers/helperFunctions";
+import validator from "validator";
+import { handleVisitSite } from "../../../helpers/helperFunctions";
 import { useAppTheme } from "../../../theme/Theme";
+const options = {
+  require_protocol: false,
+  require_valid_protocol: false,
+  allow_underscores: true,
+  allow_trailing_dot: false,
+  allow_protocol_relative_urls: false,
+};
 
 interface CopyTextComponentProps {
   text: string;
@@ -38,7 +46,7 @@ export const CopyTextComponent = ({
           }}
         >
           <ScrollView>
-            {validateLink && isValidURL(text) ? (
+            {validateLink && validator.isURL(text, options) ? (
               <TouchableOpacity onPress={() => handleVisitSite(text)}>
                 <Text
                   numberOfLines={numberOfLines ?? 2}

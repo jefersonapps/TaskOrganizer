@@ -329,8 +329,6 @@ export const ActivitiesScreen = memo(() => {
     searchQuery
   );
 
-  console.log(filterActivitiesByText.length);
-
   return (
     <View
       style={[styles.container, { backgroundColor: theme.colors.background }]}

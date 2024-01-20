@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import {
   Camera,
@@ -16,11 +16,12 @@ import {
   TapGestureHandler,
   TapGestureHandlerGestureEvent,
 } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
+import { ActivityIndicator } from "react-native-paper";
+import Animated, { ZoomIn, runOnJS } from "react-native-reanimated";
 import { scanOCR } from "vision-camera-ocr";
 import { AlertComponent } from "../../components/AlertComponent";
-import { AppContext } from "../../contexts/AppContext";
 import { useAppTheme } from "../../theme/Theme";
+import { useLitLens } from "./context/LitLensContext";
 
 export const CameraScreen = () => {
   const camera = useRef<Camera>(null);
@@ -30,7 +31,7 @@ export const CameraScreen = () => {
   const isFocused = useIsFocused();
   const isFocusing = useRef(false);
 
-  const { setImageSource, imageSource, setOcrResult } = useContext(AppContext);
+  const { setOcrResult, imageSource, setImageSource } = useLitLens();
   const [showCamera, setShowCamera] = useState(true);
   const [cameraPosition, setCameraPosition] = useState<CameraPosition>("back");
   const [isflashOn, setIsFlashOn] = useState<"off" | "on">("off");
@@ -39,6 +40,8 @@ export const CameraScreen = () => {
   const [focusPoint, setFocusPoint] = useState<{ x: number; y: number } | null>(
     null
   );
+
+  const [showActivity, setShowActivity] = useState(false);
 
   const device = cameraPosition === "front" ? devices.front : devices.back;
 
@@ -52,10 +55,11 @@ export const CameraScreen = () => {
   }, [isFocused]);
 
   const capturePhoto = async () => {
+    setShowActivity(true);
     if (camera.current !== null) {
       const photo = await camera.current.takePhoto({});
       setImageSource(photo.path);
-
+      setShowActivity(false);
       navigation.goBack();
     }
   };
@@ -191,9 +195,17 @@ export const CameraScreen = () => {
           )}
           <View style={styles.buttonContainer}>
             <TouchableOpacity
-              style={styles.camButton}
+              activeOpacity={0.6}
+              style={[styles.camButton, { opacity: showActivity ? 0.6 : 1 }]}
               onPress={() => capturePhoto()}
-            ></TouchableOpacity>
+              disabled={showActivity}
+            >
+              {showActivity && (
+                <Animated.View entering={ZoomIn}>
+                  <ActivityIndicator color={theme.colors.surface} size={50} />
+                </Animated.View>
+              )}
+            </TouchableOpacity>
           </View>
         </View>
       </PinchGestureHandler>
@@ -224,6 +236,8 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     borderWidth: 4,
     borderColor: "white",
+    alignItems: "center",
+    justifyContent: "center",
   },
   focusPoint: {
     position: "absolute",

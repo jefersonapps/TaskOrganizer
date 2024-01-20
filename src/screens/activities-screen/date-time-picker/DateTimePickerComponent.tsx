@@ -116,7 +116,6 @@ export const DateTimePickerComponent = ({
                   <TextInput.Icon
                     icon="calendar-outline"
                     style={{ marginBottom: 0 }}
-                    onPress={() => console.log("add file")}
                   />
                 }
               />
@@ -152,7 +151,6 @@ export const DateTimePickerComponent = ({
                   <TextInput.Icon
                     icon="clock-outline"
                     style={{ marginBottom: 0 }}
-                    onPress={() => console.log("add file")}
                   />
                 }
               />
