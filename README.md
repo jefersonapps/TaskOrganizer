@@ -81,6 +81,7 @@ O projeto tem as seguintes dependências:
     "@react-native-community/datetimepicker": "7.2.0",
     "@react-navigation/bottom-tabs": "^6.5.9",
     "@react-navigation/native-stack": "^6.9.14",
+    "@types/validator": "^13.11.8",
     "dayjs": "^1.11.10",
     "expo": "~49.0.13",
     "expo-barcode-scanner": "~12.5.3",
@@ -88,7 +89,7 @@ O projeto tem as seguintes dependências:
     "expo-crypto": "~12.4.1",
     "expo-document-picker": "~11.5.4",
     "expo-haptics": "~12.4.0",
-    "expo-image-picker": "~14.3.2",
+    "expo-image-picker": "^14.7.1",
     "expo-intent-launcher": "~10.7.0",
     "expo-linking": "~5.0.2",
     "expo-local-authentication": "~13.4.1",
@@ -105,6 +106,7 @@ O projeto tem as seguintes dependências:
     "react-native-draggable-flatlist": "^4.0.1",
     "react-native-gesture-handler": "~2.12.0",
     "react-native-mathjax": "^2.1.2",
+    "react-native-mlkit-ocr": "^0.3.0",
     "react-native-mmkv": "^2.11.0",
     "react-native-pager-view": "^6.2.3",
     "react-native-paper": "5.1",
@@ -120,8 +122,10 @@ O projeto tem as seguintes dependências:
     "react-native-webview": "^13.6.3",
     "react-navigation-stack": "^2.10.4",
     "reanimated-color-picker": "^2.4.1",
-    "vision-camera-ocr": "^1.0.0"
-}
+    "validator": "^13.11.0",
+    "vision-camera-ocr": "^1.0.0",
+    "expo-navigation-bar": "~2.3.0"
+  }
 ```
 
 ## Como rodar o projeto
